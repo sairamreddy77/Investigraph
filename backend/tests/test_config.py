@@ -20,10 +20,14 @@ def test_config_loads_from_env(monkeypatch):
     assert settings.NEO4J_DATABASE == "pole"
     assert settings.GROQ_API_KEY == "test_key"
 
-
-def test_config_validates_required_fields():
+def test_config_validates_required_fields(monkeypatch):
     """Test that missing required fields raise validation error"""
     from app.config import Settings
 
+    monkeypatch.delenv("NEO4J_URI", raising=False)
+    monkeypatch.delenv("NEO4J_USERNAME", raising=False)
+    monkeypatch.delenv("NEO4J_PASSWORD", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+
     with pytest.raises(ValidationError):
-        Settings()  # Missing required fields
+        Settings()

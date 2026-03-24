@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/BANDS9/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/writing-plans/**)",
+      "Read(//c/Users/BANDS9/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/subagent-driven-development/**)",
+      "Bash(\"C:\\\\Users\\\\BANDS9\\\\AppData\\\\Local\\\\Programs\\\\Git\\\\cmd\\\\git.exe\" --version)",
+      "Bash(git --version)",
+      "Bash(where git:*)",
+      "Bash(dir)",
+      "Bash(python -m venv venv)",
+      "Bash(python -m pytest tests/test_cypher_generator.py -v)",
+      "Bash(pytest tests/test_cypher_generator.py -v)",
+      "Bash(where python:*)",
+      "Bash(python -m pytest tests/test_query_executor.py -v)",
+      "Bash(python -m pytest tests/test_answer_generator.py -v)",
+      "Bash(python -m pytest tests/test_answer_generator.py::test_answer_generator_initializes -v -s)",
+      "Bash(python -m pytest --version)",
+      "Bash(python3 -m py_compile core/query_executor.py tests/test_query_executor.py)",
+      "Bash(python -m py_compile core/query_executor.py tests/test_query_executor.py)"
+    ]
+  }
+}
