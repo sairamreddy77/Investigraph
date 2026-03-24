@@ -29,8 +29,14 @@ const QueryPanel: React.FC<QueryPanelProps> = ({ onSubmit, isLoading, error }) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('━━━ QUERY PANEL SUBMIT ━━━');
+    console.log('Question:', question.trim());
+    console.log('Is loading:', isLoading);
     if (question.trim() && !isLoading) {
+      console.log('Calling onSubmit callback...');
       onSubmit(question.trim());
+    } else {
+      console.log('Submit blocked - empty question or already loading');
     }
   };
 

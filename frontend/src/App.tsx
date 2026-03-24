@@ -19,32 +19,45 @@ function App() {
   }, []);
 
   const checkSystemHealth = async () => {
+    console.log('━━━ APP: CHECKING SYSTEM HEALTH ━━━');
     try {
       const health = await checkHealth();
+      console.log('Health response:', health);
       setSystemStatus({
         neo4j: health.neo4j_connected,
         llm: health.llm_available,
       });
+      console.log('System status updated:', { neo4j: health.neo4j_connected, llm: health.llm_available });
     } catch (err) {
-      console.error('Failed to check system health:', err);
+      console.error('━━━ APP: HEALTH CHECK FAILED ━━━', err);
       setSystemStatus({ neo4j: false, llm: false });
     }
   };
 
   const handleQuerySubmit = async (question: string) => {
+    console.log('━━━ APP: QUERY SUBMIT HANDLER ━━━');
+    console.log('Question received:', question);
+
     setIsLoading(true);
     setError(null);
     setResponse(null);
+    console.log('State updated: loading=true, error=null, response=null');
 
     try {
+      console.log('Calling submitQuery...');
       const result = await submitQuery(question);
+      console.log('━━━ APP: QUERY SUCCESS ━━━');
+      console.log('Result:', result);
       setResponse(result);
     } catch (err) {
+      console.error('━━━ APP: QUERY FAILED ━━━');
+      console.error('Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
       setError(errorMessage);
-      console.error('Query failed:', err);
+      console.error('Error message set:', errorMessage);
     } finally {
       setIsLoading(false);
+      console.log('Loading state set to false');
     }
   };
 

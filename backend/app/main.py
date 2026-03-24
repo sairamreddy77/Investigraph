@@ -55,6 +55,14 @@ async def lifespan(app: FastAPI):
 
         logger.info(f"API ready on port {settings.BACKEND_PORT}")
 
+        # Log all registered routes
+        logger.info("━━━ REGISTERED ROUTES ━━━")
+        for route in app.routes:
+            if hasattr(route, 'methods') and hasattr(route, 'path'):
+                methods = ', '.join(route.methods)
+                logger.info(f"  {methods:10} {route.path}")
+        logger.info("━━━━━━━━━━━━━━━━━━━━━━━━")
+
     except Exception as e:
         logger.error(f"Startup failed: {e}", exc_info=True)
         raise
@@ -95,8 +103,14 @@ async def log_requests(request: Request, call_next):
     """Log all incoming requests"""
     start_time = time.time()
 
-    # Log request
-    logger.info(f"{request.method} {request.url.path}")
+    # Log detailed request info
+    logger.info(f"━━━ INCOMING REQUEST ━━━")
+    logger.info(f"Method: {request.method}")
+    logger.info(f"URL: {request.url}")
+    logger.info(f"Path: {request.url.path}")
+    logger.info(f"Query Params: {dict(request.query_params)}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    logger.info(f"Client: {request.client}")
 
     # Process request
     response = await call_next(request)
@@ -104,6 +118,7 @@ async def log_requests(request: Request, call_next):
     # Log response
     duration_ms = int((time.time() - start_time) * 1000)
     logger.info(
+        f"━━━ RESPONSE ━━━ "
         f"{request.method} {request.url.path} - "
         f"Status: {response.status_code} - "
         f"Duration: {duration_ms}ms"
@@ -132,6 +147,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/", tags=["Root"])
 async def root():
     """Root endpoint"""
+    logger.info("━━━ ROOT ENDPOINT CALLED ━━━")
     return {
         "service": "POLE NL-to-Cypher API",
         "version": "1.0.0",
@@ -223,13 +239,21 @@ async def query(request: QueryRequest):
         HTTPException: If pipeline execution fails
     """
     try:
-        logger.info(f"Processing query: {request.question}")
+        logger.info(f"━━━ QUERY ENDPOINT START ━━━")
+        logger.info(f"Question received: {request.question}")
+
+        # Get pipeline
+        logger.info("Getting pipeline instance...")
+        pipeline = get_pipeline()
+        logger.info(f"Pipeline initialized: {pipeline._initialized}")
 
         # Run pipeline
-        pipeline = get_pipeline()
+        logger.info("Running pipeline...")
         result = pipeline.run(request.question)
+        logger.info(f"Pipeline result keys: {result.keys()}")
 
         # Convert to response model
+        logger.info("Converting to response model...")
         response = QueryResponse(
             question=result["question"],
             answer=result["answer"],
@@ -241,11 +265,13 @@ async def query(request: QueryRequest):
             error=result.get("error")
         )
 
-        logger.info(f"Query completed in {result['execution_time_ms']}ms")
+        logger.info(f"━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in {result['execution_time_ms']}ms")
         return response
 
     except Exception as e:
-        logger.error(f"Query error: {e}", exc_info=True)
+        logger.error(f"━━━ QUERY ENDPOINT ERROR ━━━")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"Error message: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Query processing failed: {str(e)}"

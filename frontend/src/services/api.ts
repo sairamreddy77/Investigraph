@@ -54,6 +54,11 @@ async function apiCall<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
+  console.log('━━━ API CALL ━━━');
+  console.log('URL:', url);
+  console.log('Method:', options?.method || 'GET');
+  console.log('Options:', options);
+
   try {
     const response = await fetch(url, {
       headers: {
@@ -63,15 +68,22 @@ async function apiCall<T>(
       ...options,
     });
 
+    console.log('Response status:', response.status);
+    console.log('Response OK:', response.ok);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Error response:', errorData);
       throw new Error(
         errorData.detail || errorData.error || `HTTP ${response.status}: ${response.statusText}`
       );
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Response data:', data);
+    return data;
   } catch (error) {
+    console.error('API call error:', error);
     if (error instanceof Error) {
       throw error;
     }
@@ -85,7 +97,9 @@ async function apiCall<T>(
  * Submit a natural language question to the QA system
  */
 export async function submitQuery(question: string): Promise<QueryResponse> {
-  return apiCall<QueryResponse>('/ask', {
+  console.log('━━━ SUBMIT QUERY ━━━');
+  console.log('Question:', question);
+  return apiCall<QueryResponse>('/query', {
     method: 'POST',
     body: JSON.stringify({ question }),
   });
@@ -113,7 +127,37 @@ export async function getExamples(): Promise<ExamplesResponse> {
  * Check system health
  */
 export async function checkHealth(): Promise<HealthResponse> {
-  return apiCall<HealthResponse>('/health', {
-    method: 'GET',
-  });
+  // Health endpoint is at root level, not under /api
+  const url = '/health';
+  console.log('━━━ HEALTH CHECK ━━━');
+  console.log('URL:', url);
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('Health response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Health check error:', errorData);
+      throw new Error(
+        errorData.detail || errorData.error || `HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log('Health data:', data);
+    return data;
+  } catch (error) {
+    console.error('Health check failed:', error);
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('An unknown error occurred');
+  }
 }
