@@ -1,0 +1,144 @@
+examples:
+  # ── BASIC + FILTERING ──────────────────────────────
+  - question: "How many crimes are recorded?"
+    cypher: |
+      MATCH (c:Crime)
+      RETURN count(c) AS total_crimes
+
+  - question: "What are the different types of crimes?"
+    cypher: |
+      MATCH (c:Crime)
+      RETURN DISTINCT c.type
+
+  - question: "Show all crimes related to drugs"
+    cypher: |
+      MATCH (c:Crime)
+      WHERE toLower(c.type) CONTAINS 'drug'
+      RETURN c.id, c.type, c.date
+
+  - question: "Find crimes where no suspect was identified"
+    cypher: |
+      MATCH (c:Crime)
+      WHERE toLower(c.last_outcome) CONTAINS 'no suspect'
+      RETURN c.id, c.type, c.last_outcome
+
+  - question: "Find crimes that resulted in a charge"
+    cypher: |
+      MATCH (c:Crime)
+      WHERE c.charge IS NOT NULL AND c.charge <> ''
+      RETURN c.id, c.type, c.charge
+
+  # ── RELATIONSHIPS ──────────────────────────────────
+  - question: "Who are the people involved in crimes?"
+    cypher: |
+      MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
+      RETURN p.name, p.surname, c.type
+
+  - question: "Which crimes are investigated by officers?"
+    cypher: |
+      MATCH (c:Crime)-[:INVESTIGATED_BY]->(o:Officer)
+      RETURN c.type, o.name, o.rank
+
+  - question: "Which vehicles are linked to crimes?"
+    cypher: |
+      MATCH (v:Vehicle)-[:INVOLVED_IN]->(c:Crime)
+      RETURN v.make, v.model, v.reg, c.type
+
+  - question: "Which objects are associated with crimes?"
+    cypher: |
+      MATCH (o:Object)-[:INVOLVED_IN]->(c:Crime)
+      RETURN o.description, o.type, c.type
+
+  - question: "Where do crimes occur?"
+    cypher: |
+      MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
+      RETURN c.type, l.address, l.postcode
+
+  # ── MULTI-HOP ─────────────────────────────────────
+  - question: "Find people involved in crimes in each area"
+    cypher: |
+      MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      RETURN p.name, c.type, a.areaCode
+
+  - question: "Find people involved in drug crimes in area WN"
+    cypher: |
+      MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WHERE toLower(c.type) CONTAINS 'drug'
+        AND toLower(a.areaCode) CONTAINS 'wn'
+      RETURN p.name, c.type, a.areaCode
+
+  - question: "Find vehicles used in crimes in specific areas"
+    cypher: |
+      MATCH (v:Vehicle)-[:INVOLVED_IN]->(c:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      RETURN v.make, v.model, a.areaCode, c.type
+
+  - question: "Find officers investigating drug crimes"
+    cypher: |
+      MATCH (c:Crime)-[:INVESTIGATED_BY]->(o:Officer)
+      WHERE toLower(c.type) CONTAINS 'drug'
+      RETURN o.name, o.rank, c.type
+
+  # ── NETWORK / GRAPH ───────────────────────────────
+  - question: "Find people who know criminals"
+    cypher: |
+      MATCH (p1:Person)-[:KNOWS]->(p2:Person)-[:PARTY_TO]->(c:Crime)
+      RETURN p1.name AS person, p2.name AS criminal, c.type
+
+  - question: "Find family members of people involved in crimes"
+    cypher: |
+      MATCH (p1:Person)-[r:FAMILY_REL]->(p2:Person)-[:PARTY_TO]->(c:Crime)
+      RETURN p1.name, p2.name, r.rel_type, c.type
+
+  - question: "Find people connected to criminals via multiple relationships"
+    cypher: |
+      MATCH (p1:Person)-[:KNOWS|KNOWS_LW|KNOWS_SN]->(p2:Person)
+            -[:PARTY_TO]->(c:Crime)
+      RETURN p1.name, p2.name, c.type
+
+  # ── PHONE / COMMUNICATION ─────────────────────────
+  - question: "Find phone numbers of people involved in crimes"
+    cypher: |
+      MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
+      MATCH (p)-[:HAS_PHONE]->(ph:Phone)
+      RETURN p.name, ph.phoneNo, c.type
+
+  - question: "Find calls made by phones"
+    cypher: |
+      MATCH (pc:PhoneCall)-[:CALLER]->(ph:Phone)
+      RETURN ph.phoneNo, pc.call_time, pc.call_duration
+
+  - question: "Find calls received by phones"
+    cypher: |
+      MATCH (pc:PhoneCall)-[:CALLED]->(ph:Phone)
+      RETURN ph.phoneNo, pc.call_time, pc.call_duration
+
+  - question: "Find communication between two phones"
+    cypher: |
+      MATCH (pc:PhoneCall)-[:CALLER]->(ph1:Phone)
+      MATCH (pc)-[:CALLED]->(ph2:Phone)
+      RETURN ph1.phoneNo AS caller, ph2.phoneNo AS receiver, pc.call_time
+
+  # ── AGGREGATIONS ───────────────────────────────────
+  - question: "Which area has the highest number of crimes?"
+    cypher: |
+      MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      RETURN a.areaCode, count(c) AS crime_count
+      ORDER BY crime_count DESC LIMIT 1
+
+  - question: "Which officer investigates the most crimes?"
+    cypher: |
+      MATCH (c:Crime)-[:INVESTIGATED_BY]->(o:Officer)
+      RETURN o.name, count(c) AS total_cases
+      ORDER BY total_cases DESC LIMIT 1
+
+  - question: "Average duration of phone calls"
+    cypher: |
+      MATCH (pc:PhoneCall)
+      RETURN avg(pc.call_duration) AS avg_duration
