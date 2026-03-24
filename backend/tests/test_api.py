@@ -2,20 +2,25 @@
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch, MagicMock
+import os
+
+os.environ.setdefault("NEO4J_URI", "neo4j://localhost:7687")
+os.environ.setdefault("NEO4J_USERNAME", "neo4j")
+os.environ.setdefault("NEO4J_PASSWORD", "password")
+os.environ.setdefault("GROQ_API_KEY", "test_key")
+
 from app.main import app
 from app.models import GraphData
 
 
 @pytest.fixture
 def client():
-    """Create test client"""
     return TestClient(app)
 
 
 @pytest.fixture
 def mock_neo4j():
-    """Mock Neo4j client"""
-    with patch("app.database.get_neo4j_client") as mock:
+    with patch("app.main.get_neo4j_client") as mock:
         client = Mock()
         client.query.return_value = [{"test": 1}]
         client.close.return_value = None
@@ -25,8 +30,7 @@ def mock_neo4j():
 
 @pytest.fixture
 def mock_pipeline():
-    """Mock pipeline"""
-    with patch("core.pipeline.get_pipeline") as mock:
+    with patch("app.main.get_pipeline") as mock:
         pipeline = Mock()
         pipeline._initialized = True
         pipeline.initialize.return_value = None
@@ -45,8 +49,7 @@ def mock_pipeline():
 
 @pytest.fixture
 def mock_schema_introspector():
-    """Mock schema introspector"""
-    with patch("core.schema_introspector.get_schema_introspector") as mock:
+    with patch("app.main.get_schema_introspector") as mock:
         introspector = Mock()
         introspector.get_schema_text.return_value = "NODES:\n  Person(name, age)\n  Crime(type, date)"
         introspector.get_property_values.return_value = {
@@ -59,8 +62,7 @@ def mock_schema_introspector():
 
 @pytest.fixture
 def mock_few_shot_loader():
-    """Mock few-shot loader"""
-    with patch("core.few_shot_loader.get_few_shot_loader") as mock:
+    with patch("app.main.get_few_shot_loader") as mock:
         loader = Mock()
         loader.get_examples.return_value = [
             {"question": "How many crimes?", "cypher": "MATCH (c:Crime) RETURN count(c)"},
@@ -73,9 +75,7 @@ def mock_few_shot_loader():
 
 # ==================== ROOT ENDPOINT ====================
 
-
 def test_root_endpoint(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test root endpoint returns service info"""
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
@@ -90,9 +90,7 @@ def test_root_endpoint(client, mock_neo4j, mock_pipeline, mock_schema_introspect
 
 # ==================== HEALTH CHECK ====================
 
-
 def test_health_check_healthy(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test health check when all systems are operational"""
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
@@ -103,8 +101,7 @@ def test_health_check_healthy(client, mock_neo4j, mock_pipeline, mock_schema_int
 
 
 def test_health_check_neo4j_down(client, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test health check when Neo4j is down"""
-    with patch("app.database.get_neo4j_client") as mock:
+    with patch("app.main.get_neo4j_client") as mock:
         client_instance = Mock()
         client_instance.query.side_effect = Exception("Connection failed")
         mock.return_value = client_instance
@@ -117,8 +114,7 @@ def test_health_check_neo4j_down(client, mock_pipeline, mock_schema_introspector
 
 
 def test_health_check_pipeline_not_initialized(client, mock_neo4j, mock_schema_introspector, mock_few_shot_loader):
-    """Test health check when pipeline is not initialized"""
-    with patch("core.pipeline.get_pipeline") as mock:
+    with patch("app.main.get_pipeline") as mock:
         pipeline = Mock()
         pipeline._initialized = False
         mock.return_value = pipeline
@@ -132,18 +128,10 @@ def test_health_check_pipeline_not_initialized(client, mock_neo4j, mock_schema_i
 
 # ==================== QUERY ENDPOINT ====================
 
-
 def test_query_endpoint_success(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test successful query processing"""
-    response = client.post(
-        "/api/query",
-        json={"question": "How many crimes are recorded?"}
-    )
-
+    response = client.post("/api/query", json={"question": "How many crimes are recorded?"})
     assert response.status_code == 200
     data = response.json()
-
-    # Validate response structure
     assert data["question"] == "Test question?"
     assert data["answer"] == "Test answer"
     assert data["cypher"] == "MATCH (n) RETURN n LIMIT 1"
@@ -153,46 +141,27 @@ def test_query_endpoint_success(client, mock_neo4j, mock_pipeline, mock_schema_i
     assert "graph_data" in data
     assert "nodes" in data["graph_data"]
     assert "edges" in data["graph_data"]
-
-    # Verify pipeline was called
     mock_pipeline.return_value.run.assert_called_once_with("How many crimes are recorded?")
 
 
 def test_query_endpoint_empty_question(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test query endpoint with empty question"""
-    response = client.post(
-        "/api/query",
-        json={"question": ""}
-    )
-
-    # Should fail validation
+    response = client.post("/api/query", json={"question": ""})
     assert response.status_code == 422
 
 
 def test_query_endpoint_missing_question(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test query endpoint with missing question field"""
-    response = client.post(
-        "/api/query",
-        json={}
-    )
-
-    # Should fail validation
+    response = client.post("/api/query", json={})
     assert response.status_code == 422
 
 
 def test_query_endpoint_pipeline_error(client, mock_neo4j, mock_schema_introspector, mock_few_shot_loader):
-    """Test query endpoint when pipeline raises error"""
-    with patch("core.pipeline.get_pipeline") as mock:
+    with patch("app.main.get_pipeline") as mock:
         pipeline = Mock()
         pipeline._initialized = True
         pipeline.run.side_effect = Exception("Pipeline error")
         mock.return_value = pipeline
 
-        response = client.post(
-            "/api/query",
-            json={"question": "Test question"}
-        )
-
+        response = client.post("/api/query", json={"question": "Test question"})
         assert response.status_code == 500
         data = response.json()
         assert "detail" in data
@@ -200,8 +169,7 @@ def test_query_endpoint_pipeline_error(client, mock_neo4j, mock_schema_introspec
 
 
 def test_query_endpoint_with_error_in_results(client, mock_neo4j, mock_schema_introspector, mock_few_shot_loader):
-    """Test query endpoint when pipeline returns error in results"""
-    with patch("core.pipeline.get_pipeline") as mock:
+    with patch("app.main.get_pipeline") as mock:
         pipeline = Mock()
         pipeline._initialized = True
         pipeline.run.return_value = {
@@ -216,11 +184,7 @@ def test_query_endpoint_with_error_in_results(client, mock_neo4j, mock_schema_in
         }
         mock.return_value = pipeline
 
-        response = client.post(
-            "/api/query",
-            json={"question": "Test question"}
-        )
-
+        response = client.post("/api/query", json={"question": "Test question"})
         assert response.status_code == 200
         data = response.json()
         assert data["error"] == "Syntax error"
@@ -230,35 +194,26 @@ def test_query_endpoint_with_error_in_results(client, mock_neo4j, mock_schema_in
 
 # ==================== SCHEMA ENDPOINT ====================
 
-
 def test_schema_endpoint_success(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test successful schema retrieval"""
     response = client.get("/api/schema")
-
     assert response.status_code == 200
     data = response.json()
-
-    # Validate response structure
     assert "schema" in data
     assert "property_values" in data
     assert "Person" in data["schema"]
     assert "Crime" in data["schema"]
     assert "Crime.type" in data["property_values"]
-
-    # Verify introspector was called
     mock_schema_introspector.return_value.get_schema_text.assert_called_once()
     mock_schema_introspector.return_value.get_property_values.assert_called_once()
 
 
 def test_schema_endpoint_error(client, mock_neo4j, mock_pipeline, mock_few_shot_loader):
-    """Test schema endpoint when introspector raises error"""
-    with patch("core.schema_introspector.get_schema_introspector") as mock:
+    with patch("app.main.get_schema_introspector") as mock:
         introspector = Mock()
         introspector.get_schema_text.side_effect = Exception("Schema error")
         mock.return_value = introspector
 
         response = client.get("/api/schema")
-
         assert response.status_code == 500
         data = response.json()
         assert "detail" in data
@@ -267,39 +222,28 @@ def test_schema_endpoint_error(client, mock_neo4j, mock_pipeline, mock_few_shot_
 
 # ==================== EXAMPLES ENDPOINT ====================
 
-
 def test_examples_endpoint_success(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test successful examples retrieval"""
     response = client.get("/api/examples")
-
     assert response.status_code == 200
     data = response.json()
-
-    # Validate response structure
     assert "examples" in data
     assert "count" in data
     assert data["count"] == 2
     assert len(data["examples"]) == 2
-
-    # Validate example structure
     example = data["examples"][0]
     assert "question" in example
     assert "cypher" in example
     assert example["question"] == "How many crimes?"
-
-    # Verify loader was called
     mock_few_shot_loader.return_value.get_examples.assert_called_once()
 
 
 def test_examples_endpoint_empty(client, mock_neo4j, mock_pipeline, mock_schema_introspector):
-    """Test examples endpoint with no examples"""
-    with patch("core.few_shot_loader.get_few_shot_loader") as mock:
+    with patch("app.main.get_few_shot_loader") as mock:
         loader = Mock()
         loader.get_examples.return_value = []
         mock.return_value = loader
 
         response = client.get("/api/examples")
-
         assert response.status_code == 200
         data = response.json()
         assert data["count"] == 0
@@ -307,14 +251,12 @@ def test_examples_endpoint_empty(client, mock_neo4j, mock_pipeline, mock_schema_
 
 
 def test_examples_endpoint_error(client, mock_neo4j, mock_pipeline, mock_schema_introspector):
-    """Test examples endpoint when loader raises error"""
-    with patch("core.few_shot_loader.get_few_shot_loader") as mock:
+    with patch("app.main.get_few_shot_loader") as mock:
         loader = Mock()
         loader.get_examples.side_effect = Exception("Load error")
         mock.return_value = loader
 
         response = client.get("/api/examples")
-
         assert response.status_code == 500
         data = response.json()
         assert "detail" in data
@@ -323,21 +265,15 @@ def test_examples_endpoint_error(client, mock_neo4j, mock_pipeline, mock_schema_
 
 # ==================== INTEGRATION TESTS ====================
 
-
 def test_query_with_multiple_results(client, mock_neo4j, mock_schema_introspector, mock_few_shot_loader):
-    """Test query that returns multiple results"""
-    with patch("core.pipeline.get_pipeline") as mock:
+    with patch("app.main.get_pipeline") as mock:
         pipeline = Mock()
         pipeline._initialized = True
         pipeline.run.return_value = {
             "question": "List all people",
             "answer": "Found 3 people: John, Jane, Bob",
             "cypher": "MATCH (p:Person) RETURN p.name",
-            "results": [
-                {"p.name": "John"},
-                {"p.name": "Jane"},
-                {"p.name": "Bob"}
-            ],
+            "results": [{"p.name": "John"}, {"p.name": "Jane"}, {"p.name": "Bob"}],
             "graph_data": {
                 "nodes": [
                     {"id": "1", "label": "Person", "properties": {"name": "John"}},
@@ -351,11 +287,7 @@ def test_query_with_multiple_results(client, mock_neo4j, mock_schema_introspecto
         }
         mock.return_value = pipeline
 
-        response = client.post(
-            "/api/query",
-            json={"question": "List all people"}
-        )
-
+        response = client.post("/api/query", json={"question": "List all people"})
         assert response.status_code == 200
         data = response.json()
         assert len(data["results"]) == 3
@@ -363,21 +295,13 @@ def test_query_with_multiple_results(client, mock_neo4j, mock_schema_introspecto
 
 
 def test_cors_headers(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader):
-    """Test CORS headers are present"""
     response = client.get("/health")
-
-    # Note: TestClient doesn't fully simulate CORS, but we can verify the middleware is configured
-    # In actual deployment, these headers would be present
     assert response.status_code == 200
 
 
 def test_request_logging(client, mock_neo4j, mock_pipeline, mock_schema_introspector, mock_few_shot_loader, caplog):
-    """Test that requests are logged"""
     import logging
     caplog.set_level(logging.INFO)
-
     response = client.get("/health")
-
     assert response.status_code == 200
-    # Check that logging occurred (captured in caplog)
     assert any("GET /health" in record.message for record in caplog.records)
