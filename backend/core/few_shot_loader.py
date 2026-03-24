@@ -42,6 +42,14 @@ class FewShotLoader:
 
         return "\n".join(formatted)
 
+    def get_examples(self) -> List[Dict[str, str]]:
+        """Get examples (public API)"""
+        return self.load_examples()
+
+    def load(self) -> None:
+        """Load and cache examples (called during initialization)"""
+        self.load_examples()
+
 
 # Global singleton
 _few_shot_loader: Optional[FewShotLoader] = None

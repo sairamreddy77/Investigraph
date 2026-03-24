@@ -183,6 +183,17 @@ class SchemaIntrospector:
 
         return "\n".join(lines)
 
+    def get_schema_text(self) -> str:
+        """Get formatted schema text (public API)"""
+        return self.introspect()
+
+    def get_property_values(self) -> Dict[str, List[str]]:
+        """Get property values (public API)"""
+        # Trigger introspection if not cached
+        if self._schema_cache is None:
+            self.introspect()
+        return self._fetch_property_values()
+
 
 # Global singleton
 _schema_introspector: Optional[SchemaIntrospector] = None
