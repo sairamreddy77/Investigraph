@@ -1,0 +1,3079 @@
+{
+  "version": "1.4.0",
+  "graph": {
+    "nodes": [
+      {
+        "id": "n0",
+        "position": {
+          "x": -242.70124458857862,
+          "y": 601.2817916743356
+        },
+        "caption": "AREA"
+      },
+      {
+        "id": "n1",
+        "position": {
+          "x": 59.96517407653328,
+          "y": 152.7472545248026
+        },
+        "caption": "Crime"
+      },
+      {
+        "id": "n2",
+        "position": {
+          "x": -513.1440961723174,
+          "y": -3.444516725420499
+        },
+        "caption": "Email"
+      },
+      {
+        "id": "n3",
+        "position": {
+          "x": -91.36803525602267,
+          "y": 377.01452309956915
+        },
+        "caption": "Location"
+      },
+      {
+        "id": "n4",
+        "position": {
+          "x": 213.9651740765333,
+          "y": 336.90751476861743
+        },
+        "caption": "Object"
+      },
+      {
+        "id": "n5",
+        "position": {
+          "x": 59.96517407653328,
+          "y": -87.31732314768453
+        },
+        "caption": "Officer"
+      },
+      {
+        "id": "n6",
+        "position": {
+          "x": -292.23307654089285,
+          "y": 152.7472545248026
+        },
+        "caption": "Person"
+      },
+      {
+        "id": "n7",
+        "position": {
+          "x": -538.4516706039348,
+          "y": 264.8808888121859
+        },
+        "caption": "Phone"
+      },
+      {
+        "id": "n8",
+        "position": {
+          "x": -316.45347109881595,
+          "y": 419.5235330516165
+        },
+        "caption": "PhoneCall"
+      },
+      {
+        "id": "n9",
+        "position": {
+          "x": 59.96517407653328,
+          "y": 601.2817916743356
+        },
+        "caption": "PostCode"
+      },
+      {
+        "id": "n10",
+        "position": {
+          "x": 300.0297517490204,
+          "y": 152.7472545248026
+        },
+        "caption": "Vehicle"
+      }
+    ],
+    "relationships": [
+      {
+        "id": "n0",
+        "type": "CALLED",
+        "fromId": "n8",
+        "toId": "n7"
+      },
+      {
+        "id": "n1",
+        "type": "CALLER",
+        "fromId": "n8",
+        "toId": "n7"
+      },
+      {
+        "id": "n2",
+        "type": "CURRENT_ADDRESS",
+        "fromId": "n6",
+        "toId": "n3"
+      },
+      {
+        "id": "n3",
+        "type": "FAMILY_REL",
+        "fromId": "n6",
+        "toId": "n6"
+      },
+      {
+        "id": "n4",
+        "type": "HAS_EMAIL",
+        "fromId": "n6",
+        "toId": "n2"
+      },
+      {
+        "id": "n5",
+        "type": "HAS_PHONE",
+        "fromId": "n6",
+        "toId": "n7"
+      },
+      {
+        "id": "n6",
+        "type": "HAS_POSTCODE",
+        "fromId": "n3",
+        "toId": "n9"
+      },
+      {
+        "id": "n7",
+        "type": "INVESTIGATED_BY",
+        "fromId": "n1",
+        "toId": "n5"
+      },
+      {
+        "id": "n8",
+        "type": "INVOLVED_IN",
+        "fromId": "n10",
+        "toId": "n1"
+      },
+      {
+        "id": "n9",
+        "type": "KNOWS",
+        "fromId": "n6",
+        "toId": "n6"
+      },
+      {
+        "id": "n10",
+        "type": "KNOWS_LW",
+        "fromId": "n6",
+        "toId": "n6"
+      },
+      {
+        "id": "n11",
+        "type": "KNOWS_PHONE",
+        "fromId": "n6",
+        "toId": "n6"
+      },
+      {
+        "id": "n12",
+        "type": "LOCATION_IN_AREA",
+        "fromId": "n3",
+        "toId": "n0"
+      },
+      {
+        "id": "n13",
+        "type": "OCCURRED_AT",
+        "fromId": "n1",
+        "toId": "n3"
+      },
+      {
+        "id": "n14",
+        "type": "PARTY_TO",
+        "fromId": "n6",
+        "toId": "n1"
+      },
+      {
+        "id": "n15",
+        "type": "POSTCODE_IN_AREA",
+        "fromId": "n9",
+        "toId": "n0"
+      },
+      {
+        "id": "n16",
+        "type": "INVOLVED_IN",
+        "fromId": "n4",
+        "toId": "n1"
+      }
+    ]
+  },
+  "dataModel": {
+    "version": "1.4.0",
+    "graphSchemaRepresentation": {
+      "version": "1.0.0",
+      "graphSchema": {
+        "nodeLabels": [
+          {
+            "$id": "nl:n0",
+            "token": "AREA",
+            "properties": [
+              {
+                "$id": "p:1",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:2",
+                "token": "areaCode",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n1",
+            "token": "Crime",
+            "properties": [
+              {
+                "$id": "p:3",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:4",
+                "token": "date",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:5",
+                "token": "source_id",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:6",
+                "token": "type",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:7",
+                "token": "last_outcome",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:8",
+                "token": "note",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:9",
+                "token": "charge",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n2",
+            "token": "Email",
+            "properties": [
+              {
+                "$id": "p:10",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:11",
+                "token": "email_address",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n3",
+            "token": "Location",
+            "properties": [
+              {
+                "$id": "p:12",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:13",
+                "token": "latitude",
+                "type": {
+                  "type": "float"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:14",
+                "token": "postcode",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:15",
+                "token": "longitude",
+                "type": {
+                  "type": "float"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:16",
+                "token": "address",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n4",
+            "token": "Object",
+            "properties": [
+              {
+                "$id": "p:17",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:18",
+                "token": "description",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:19",
+                "token": "source_id",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:20",
+                "token": "type",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n5",
+            "token": "Officer",
+            "properties": [
+              {
+                "$id": "p:21",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:22",
+                "token": "badge_no",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:23",
+                "token": "rank",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:24",
+                "token": "name",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:25",
+                "token": "surname",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n6",
+            "token": "Person",
+            "properties": [
+              {
+                "$id": "p:26",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:27",
+                "token": "surname",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:28",
+                "token": "nhs_no",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:29",
+                "token": "name",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:30",
+                "token": "age",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n7",
+            "token": "Phone",
+            "properties": [
+              {
+                "$id": "p:31",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:32",
+                "token": "phoneNo",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n8",
+            "token": "PhoneCall",
+            "properties": [
+              {
+                "$id": "p:33",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:34",
+                "token": "call_duration",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:35",
+                "token": "call_time",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:36",
+                "token": "call_date",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:37",
+                "token": "call_type",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n9",
+            "token": "PostCode",
+            "properties": [
+              {
+                "$id": "p:38",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:39",
+                "token": "code",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "nl:n10",
+            "token": "Vehicle",
+            "properties": [
+              {
+                "$id": "p:40",
+                "token": "id",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:41",
+                "token": "model",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:42",
+                "token": "reg",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:43",
+                "token": "make",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              },
+              {
+                "$id": "p:44",
+                "token": "year",
+                "type": {
+                  "type": "integer"
+                },
+                "nullable": true
+              }
+            ]
+          }
+        ],
+        "nodeObjectTypes": [
+          {
+            "$id": "n:n0",
+            "labels": [
+              {
+                "$ref": "#nl:n0"
+              }
+            ]
+          },
+          {
+            "$id": "n:n1",
+            "labels": [
+              {
+                "$ref": "#nl:n1"
+              }
+            ]
+          },
+          {
+            "$id": "n:n2",
+            "labels": [
+              {
+                "$ref": "#nl:n2"
+              }
+            ]
+          },
+          {
+            "$id": "n:n3",
+            "labels": [
+              {
+                "$ref": "#nl:n3"
+              }
+            ]
+          },
+          {
+            "$id": "n:n4",
+            "labels": [
+              {
+                "$ref": "#nl:n4"
+              }
+            ]
+          },
+          {
+            "$id": "n:n5",
+            "labels": [
+              {
+                "$ref": "#nl:n5"
+              }
+            ]
+          },
+          {
+            "$id": "n:n6",
+            "labels": [
+              {
+                "$ref": "#nl:n6"
+              }
+            ]
+          },
+          {
+            "$id": "n:n7",
+            "labels": [
+              {
+                "$ref": "#nl:n7"
+              }
+            ]
+          },
+          {
+            "$id": "n:n8",
+            "labels": [
+              {
+                "$ref": "#nl:n8"
+              }
+            ]
+          },
+          {
+            "$id": "n:n9",
+            "labels": [
+              {
+                "$ref": "#nl:n9"
+              }
+            ]
+          },
+          {
+            "$id": "n:n10",
+            "labels": [
+              {
+                "$ref": "#nl:n10"
+              }
+            ]
+          }
+        ],
+        "relationshipTypes": [
+          {
+            "$id": "rt:n0",
+            "token": "CALLED",
+            "properties": []
+          },
+          {
+            "$id": "rt:n1",
+            "token": "CALLER",
+            "properties": []
+          },
+          {
+            "$id": "rt:n2",
+            "token": "CURRENT_ADDRESS",
+            "properties": []
+          },
+          {
+            "$id": "rt:n3",
+            "token": "FAMILY_REL",
+            "properties": [
+              {
+                "$id": "p:45",
+                "token": "rel_type",
+                "type": {
+                  "type": "string"
+                },
+                "nullable": true
+              }
+            ]
+          },
+          {
+            "$id": "rt:n4",
+            "token": "HAS_EMAIL",
+            "properties": []
+          },
+          {
+            "$id": "rt:n5",
+            "token": "HAS_PHONE",
+            "properties": []
+          },
+          {
+            "$id": "rt:n6",
+            "token": "HAS_POSTCODE",
+            "properties": []
+          },
+          {
+            "$id": "rt:n7",
+            "token": "INVESTIGATED_BY",
+            "properties": []
+          },
+          {
+            "$id": "rt:n8",
+            "token": "INVOLVED_IN",
+            "properties": []
+          },
+          {
+            "$id": "rt:n9",
+            "token": "KNOWS",
+            "properties": []
+          },
+          {
+            "$id": "rt:n10",
+            "token": "KNOWS_LW",
+            "properties": []
+          },
+          {
+            "$id": "rt:n11",
+            "token": "KNOWS_PHONE",
+            "properties": []
+          },
+          {
+            "$id": "rt:n12",
+            "token": "LOCATION_IN_AREA",
+            "properties": []
+          },
+          {
+            "$id": "rt:n13",
+            "token": "OCCURRED_AT",
+            "properties": []
+          },
+          {
+            "$id": "rt:n14",
+            "token": "PARTY_TO",
+            "properties": []
+          },
+          {
+            "$id": "rt:n15",
+            "token": "POSTCODE_IN_AREA",
+            "properties": []
+          },
+          {
+            "$id": "rt:n16",
+            "token": "INVOLVED_IN",
+            "properties": []
+          }
+        ],
+        "relationshipObjectTypes": [
+          {
+            "$id": "r:n0",
+            "type": {
+              "$ref": "#rt:n0"
+            },
+            "from": {
+              "$ref": "#n:n8"
+            },
+            "to": {
+              "$ref": "#n:n7"
+            }
+          },
+          {
+            "$id": "r:n1",
+            "type": {
+              "$ref": "#rt:n1"
+            },
+            "from": {
+              "$ref": "#n:n8"
+            },
+            "to": {
+              "$ref": "#n:n7"
+            }
+          },
+          {
+            "$id": "r:n2",
+            "type": {
+              "$ref": "#rt:n2"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n3"
+            }
+          },
+          {
+            "$id": "r:n3",
+            "type": {
+              "$ref": "#rt:n3"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n6"
+            }
+          },
+          {
+            "$id": "r:n4",
+            "type": {
+              "$ref": "#rt:n4"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n2"
+            }
+          },
+          {
+            "$id": "r:n5",
+            "type": {
+              "$ref": "#rt:n5"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n7"
+            }
+          },
+          {
+            "$id": "r:n6",
+            "type": {
+              "$ref": "#rt:n6"
+            },
+            "from": {
+              "$ref": "#n:n3"
+            },
+            "to": {
+              "$ref": "#n:n9"
+            }
+          },
+          {
+            "$id": "r:n7",
+            "type": {
+              "$ref": "#rt:n7"
+            },
+            "from": {
+              "$ref": "#n:n1"
+            },
+            "to": {
+              "$ref": "#n:n5"
+            }
+          },
+          {
+            "$id": "r:n8",
+            "type": {
+              "$ref": "#rt:n8"
+            },
+            "from": {
+              "$ref": "#n:n10"
+            },
+            "to": {
+              "$ref": "#n:n1"
+            }
+          },
+          {
+            "$id": "r:n9",
+            "type": {
+              "$ref": "#rt:n9"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n6"
+            }
+          },
+          {
+            "$id": "r:n10",
+            "type": {
+              "$ref": "#rt:n10"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n6"
+            }
+          },
+          {
+            "$id": "r:n11",
+            "type": {
+              "$ref": "#rt:n11"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n6"
+            }
+          },
+          {
+            "$id": "r:n12",
+            "type": {
+              "$ref": "#rt:n12"
+            },
+            "from": {
+              "$ref": "#n:n3"
+            },
+            "to": {
+              "$ref": "#n:n0"
+            }
+          },
+          {
+            "$id": "r:n13",
+            "type": {
+              "$ref": "#rt:n13"
+            },
+            "from": {
+              "$ref": "#n:n1"
+            },
+            "to": {
+              "$ref": "#n:n3"
+            }
+          },
+          {
+            "$id": "r:n14",
+            "type": {
+              "$ref": "#rt:n14"
+            },
+            "from": {
+              "$ref": "#n:n6"
+            },
+            "to": {
+              "$ref": "#n:n1"
+            }
+          },
+          {
+            "$id": "r:n15",
+            "type": {
+              "$ref": "#rt:n15"
+            },
+            "from": {
+              "$ref": "#n:n9"
+            },
+            "to": {
+              "$ref": "#n:n0"
+            }
+          },
+          {
+            "$id": "r:n16",
+            "type": {
+              "$ref": "#rt:n16"
+            },
+            "from": {
+              "$ref": "#n:n4"
+            },
+            "to": {
+              "$ref": "#n:n1"
+            }
+          }
+        ],
+        "indexes": [
+          {
+            "$id": "i:0",
+            "name": "id_AREA_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n0"
+            },
+            "properties": [
+              {
+                "$ref": "#p:1"
+              }
+            ]
+          },
+          {
+            "$id": "i:1",
+            "name": "id_Crime_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n1"
+            },
+            "properties": [
+              {
+                "$ref": "#p:3"
+              }
+            ]
+          },
+          {
+            "$id": "i:2",
+            "name": "id_Email_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n2"
+            },
+            "properties": [
+              {
+                "$ref": "#p:10"
+              }
+            ]
+          },
+          {
+            "$id": "i:3",
+            "name": "id_Location_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n3"
+            },
+            "properties": [
+              {
+                "$ref": "#p:12"
+              }
+            ]
+          },
+          {
+            "$id": "i:4",
+            "name": "id_Object_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n4"
+            },
+            "properties": [
+              {
+                "$ref": "#p:17"
+              }
+            ]
+          },
+          {
+            "$id": "i:5",
+            "name": "id_Officer_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n5"
+            },
+            "properties": [
+              {
+                "$ref": "#p:21"
+              }
+            ]
+          },
+          {
+            "$id": "i:6",
+            "name": "id_Person_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n6"
+            },
+            "properties": [
+              {
+                "$ref": "#p:26"
+              }
+            ]
+          },
+          {
+            "$id": "i:7",
+            "name": "id_Phone_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n7"
+            },
+            "properties": [
+              {
+                "$ref": "#p:31"
+              }
+            ]
+          },
+          {
+            "$id": "i:8",
+            "name": "id_PhoneCall_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n8"
+            },
+            "properties": [
+              {
+                "$ref": "#p:33"
+              }
+            ]
+          },
+          {
+            "$id": "i:9",
+            "name": "id_PostCode_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n9"
+            },
+            "properties": [
+              {
+                "$ref": "#p:38"
+              }
+            ]
+          },
+          {
+            "$id": "i:10",
+            "name": "id_Vehicle_uniq",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n10"
+            },
+            "properties": [
+              {
+                "$ref": "#p:40"
+              }
+            ]
+          },
+          {
+            "$id": "i:11",
+            "name": "surname_Person",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n6"
+            },
+            "properties": [
+              {
+                "$ref": "#p:27"
+              }
+            ]
+          },
+          {
+            "$id": "i:12",
+            "name": "nhs_no_Person",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n6"
+            },
+            "properties": [
+              {
+                "$ref": "#p:28"
+              }
+            ]
+          },
+          {
+            "$id": "i:13",
+            "name": "name_Person",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n6"
+            },
+            "properties": [
+              {
+                "$ref": "#p:29"
+              }
+            ]
+          },
+          {
+            "$id": "i:14",
+            "name": "areaCode_AREA",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n0"
+            },
+            "properties": [
+              {
+                "$ref": "#p:2"
+              }
+            ]
+          },
+          {
+            "$id": "i:15",
+            "name": "last_outcome_Crime",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n1"
+            },
+            "properties": [
+              {
+                "$ref": "#p:7"
+              }
+            ]
+          },
+          {
+            "$id": "i:16",
+            "name": "type_Crime",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n1"
+            },
+            "properties": [
+              {
+                "$ref": "#p:6"
+              }
+            ]
+          },
+          {
+            "$id": "i:17",
+            "name": "address_Location",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n3"
+            },
+            "properties": [
+              {
+                "$ref": "#p:16"
+              }
+            ]
+          },
+          {
+            "$id": "i:18",
+            "name": "postcode_Location",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n3"
+            },
+            "properties": [
+              {
+                "$ref": "#p:14"
+              }
+            ]
+          },
+          {
+            "$id": "i:19",
+            "name": "type_Object",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n4"
+            },
+            "properties": [
+              {
+                "$ref": "#p:20"
+              }
+            ]
+          },
+          {
+            "$id": "i:20",
+            "name": "rank_Officer",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n5"
+            },
+            "properties": [
+              {
+                "$ref": "#p:23"
+              }
+            ]
+          },
+          {
+            "$id": "i:21",
+            "name": "surname_Officer",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n5"
+            },
+            "properties": [
+              {
+                "$ref": "#p:25"
+              }
+            ]
+          },
+          {
+            "$id": "i:22",
+            "name": "code_PostCode",
+            "indexType": "default",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n9"
+            },
+            "properties": [
+              {
+                "$ref": "#p:39"
+              }
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "$id": "c:0",
+            "name": "id_AREA_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n0"
+            },
+            "properties": [
+              {
+                "$ref": "#p:1"
+              }
+            ]
+          },
+          {
+            "$id": "c:1",
+            "name": "id_Crime_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n1"
+            },
+            "properties": [
+              {
+                "$ref": "#p:3"
+              }
+            ]
+          },
+          {
+            "$id": "c:2",
+            "name": "id_Email_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n2"
+            },
+            "properties": [
+              {
+                "$ref": "#p:10"
+              }
+            ]
+          },
+          {
+            "$id": "c:3",
+            "name": "id_Location_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n3"
+            },
+            "properties": [
+              {
+                "$ref": "#p:12"
+              }
+            ]
+          },
+          {
+            "$id": "c:4",
+            "name": "id_Object_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n4"
+            },
+            "properties": [
+              {
+                "$ref": "#p:17"
+              }
+            ]
+          },
+          {
+            "$id": "c:5",
+            "name": "id_Officer_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n5"
+            },
+            "properties": [
+              {
+                "$ref": "#p:21"
+              }
+            ]
+          },
+          {
+            "$id": "c:6",
+            "name": "id_Person_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n6"
+            },
+            "properties": [
+              {
+                "$ref": "#p:26"
+              }
+            ]
+          },
+          {
+            "$id": "c:7",
+            "name": "id_Phone_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n7"
+            },
+            "properties": [
+              {
+                "$ref": "#p:31"
+              }
+            ]
+          },
+          {
+            "$id": "c:8",
+            "name": "id_PhoneCall_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n8"
+            },
+            "properties": [
+              {
+                "$ref": "#p:33"
+              }
+            ]
+          },
+          {
+            "$id": "c:9",
+            "name": "id_PostCode_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n9"
+            },
+            "properties": [
+              {
+                "$ref": "#p:38"
+              }
+            ]
+          },
+          {
+            "$id": "c:10",
+            "name": "id_Vehicle_uniq",
+            "constraintType": "uniqueness",
+            "entityType": "node",
+            "nodeLabel": {
+              "$ref": "#nl:n10"
+            },
+            "properties": [
+              {
+                "$ref": "#p:40"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "graphSchemaExtensionsRepresentation": {
+      "nodeKeyProperties": [
+        {
+          "node": {
+            "$ref": "#n:n0"
+          },
+          "keyProperty": {
+            "$ref": "#p:1"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n1"
+          },
+          "keyProperty": {
+            "$ref": "#p:3"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n2"
+          },
+          "keyProperty": {
+            "$ref": "#p:10"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n3"
+          },
+          "keyProperty": {
+            "$ref": "#p:12"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n4"
+          },
+          "keyProperty": {
+            "$ref": "#p:17"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n5"
+          },
+          "keyProperty": {
+            "$ref": "#p:21"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n6"
+          },
+          "keyProperty": {
+            "$ref": "#p:26"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n7"
+          },
+          "keyProperty": {
+            "$ref": "#p:31"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n8"
+          },
+          "keyProperty": {
+            "$ref": "#p:33"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n9"
+          },
+          "keyProperty": {
+            "$ref": "#p:38"
+          }
+        },
+        {
+          "node": {
+            "$ref": "#n:n10"
+          },
+          "keyProperty": {
+            "$ref": "#p:40"
+          }
+        }
+      ]
+    },
+    "graphMappingRepresentation": {
+      "dataSourceSchema": {
+        "type": "local/csv",
+        "tableSchemas": [
+          {
+            "$id": "t:1",
+            "name": "crime-investigation.nodes.Location.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "1",
+                "include": true
+              },
+              {
+                "name": "latitude:double",
+                "type": "float",
+                "sample": "53.530988",
+                "include": true
+              },
+              {
+                "name": "postcode",
+                "type": "string",
+                "sample": "WN3 4NL",
+                "include": true
+              },
+              {
+                "name": "longitude:double",
+                "type": "float",
+                "sample": "-2.61741",
+                "include": true
+              },
+              {
+                "name": "address",
+                "type": "string",
+                "sample": "178 Polding Street",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Location",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:2",
+            "name": "crime-investigation.nodes.Object.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "61506",
+                "include": true
+              },
+              {
+                "name": "description",
+                "type": "string",
+                "sample": "43 Cannabis Plants, 3kg Prepared Cannabis",
+                "include": true
+              },
+              {
+                "name": "id",
+                "type": "string",
+                "sample": "2346erfsdff223",
+                "include": true
+              },
+              {
+                "name": "type",
+                "type": "string",
+                "sample": "Evidence",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Object",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:3",
+            "name": "crime-investigation.nodes.Officer.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "1323",
+                "include": true
+              },
+              {
+                "name": "badge_no",
+                "type": "string",
+                "sample": "80-1015383",
+                "include": true
+              },
+              {
+                "name": "rank",
+                "type": "string",
+                "sample": "Sergeant",
+                "include": true
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "sample": "Sophronia",
+                "include": true
+              },
+              {
+                "name": "surname",
+                "type": "string",
+                "sample": "Lineen",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Officer",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:4",
+            "name": "crime-investigation.nodes.Person.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "0",
+                "include": true
+              },
+              {
+                "name": "surname",
+                "type": "string",
+                "sample": "Hamilton",
+                "include": true
+              },
+              {
+                "name": "nhs_no",
+                "type": "string",
+                "sample": "117-66-8129",
+                "include": true
+              },
+              {
+                "name": "name",
+                "type": "string",
+                "sample": "Todd",
+                "include": true
+              },
+              {
+                "name": "age",
+                "type": "string",
+                "sample": "",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Person",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:5",
+            "name": "crime-investigation.nodes.Phone.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "3",
+                "include": true
+              },
+              {
+                "name": "phoneNo",
+                "type": "string",
+                "sample": "0-(070)893-3322",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Phone",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:6",
+            "name": "crime-investigation.nodes.PhoneCall.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "16943",
+                "include": true
+              },
+              {
+                "name": "call_duration",
+                "type": "integer",
+                "sample": "38",
+                "include": true
+              },
+              {
+                "name": "call_time",
+                "type": "string",
+                "sample": "00:32",
+                "include": true
+              },
+              {
+                "name": "call_date",
+                "type": "string",
+                "sample": "04/08/2017",
+                "include": true
+              },
+              {
+                "name": "call_type",
+                "type": "string",
+                "sample": "CALL",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "PhoneCall",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:7",
+            "name": "crime-investigation.nodes.PostCode.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "16960",
+                "include": true
+              },
+              {
+                "name": "code",
+                "type": "string",
+                "sample": "WN3 4NL",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "PostCode",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:8",
+            "name": "crime-investigation.nodes.Vehicle.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "31238",
+                "include": true
+              },
+              {
+                "name": "model",
+                "type": "string",
+                "sample": "4Runner",
+                "include": true
+              },
+              {
+                "name": "reg",
+                "type": "string",
+                "sample": "RY52 APF",
+                "include": true
+              },
+              {
+                "name": "make",
+                "type": "string",
+                "sample": "Toyota",
+                "include": true
+              },
+              {
+                "name": "year",
+                "type": "integer",
+                "sample": "2005",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Vehicle",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:9",
+            "name": "crime-investigation.relationships.CALLED.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "31237",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "808",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "CALLED",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:10",
+            "name": "crime-investigation.relationships.CALLER.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "31237",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "826",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "CALLER",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:11",
+            "name": "crime-investigation.relationships.CURRENT_ADDRESS.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "0",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "1",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "CURRENT_ADDRESS",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:12",
+            "name": "crime-investigation.relationships.FAMILY_REL.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "0",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "2",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "FAMILY_REL",
+                "include": true
+              },
+              {
+                "name": "rel_type",
+                "type": "string",
+                "sample": "SIBLING",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:13",
+            "name": "crime-investigation.relationships.HAS_EMAIL.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "2",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "4",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "HAS_EMAIL",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:14",
+            "name": "crime-investigation.relationships.HAS_PHONE.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "2",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "3",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "HAS_PHONE",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:15",
+            "name": "crime-investigation.relationships.HAS_POSTCODE.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "1",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "16960",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "HAS_POSTCODE",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:16",
+            "name": "crime-investigation.relationships.INVESTIGATED_BY.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "1325",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "1495",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "INVESTIGATED_BY",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:17",
+            "name": "crime-investigation.relationships.INVOLVED_IN.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "61528",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "57117",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "INVOLVED_IN",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:18",
+            "name": "crime-investigation.relationships.KNOWS.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "1073",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "242",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "KNOWS",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:19",
+            "name": "crime-investigation.relationships.KNOWS_LW.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "917",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "914",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "KNOWS_LW",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:20",
+            "name": "crime-investigation.relationships.KNOWS_PHONE.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "806",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "824",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "KNOWS_PHONE",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:21",
+            "name": "crime-investigation.relationships.KNOWS_SN.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "1073",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "242",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "KNOWS_SN",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:22",
+            "name": "crime-investigation.relationships.LOCATION_IN_AREA.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "16898",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "16961",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "LOCATION_IN_AREA",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:23",
+            "name": "crime-investigation.relationships.OCCURRED_AT.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "1325",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "15998",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "OCCURRED_AT",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:24",
+            "name": "crime-investigation.relationships.PARTY_TO.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "857",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "1335",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "PARTY_TO",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:25",
+            "name": "crime-investigation.relationships.POSTCODE_IN_AREA.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":START_ID",
+                "type": "integer",
+                "sample": "16960",
+                "include": true
+              },
+              {
+                "name": ":END_ID",
+                "type": "integer",
+                "sample": "16961",
+                "include": true
+              },
+              {
+                "name": ":TYPE",
+                "type": "string",
+                "sample": "POSTCODE_IN_AREA",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:26",
+            "name": "crime-investigation.nodes.Area.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "16961",
+                "include": true
+              },
+              {
+                "name": "areaCode",
+                "type": "string",
+                "sample": "WN3",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Area",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:27",
+            "name": "crime-investigation.nodes.Email.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "4",
+                "include": true
+              },
+              {
+                "name": "email_address",
+                "type": "string",
+                "sample": "bhamilton3h@twitter.com",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Email",
+                "include": true
+              }
+            ]
+          },
+          {
+            "$id": "t:28",
+            "name": "crime-investigation.nodes.Crime.csv",
+            "expanded": true,
+            "fields": [
+              {
+                "name": ":ID",
+                "type": "integer",
+                "sample": "1325",
+                "include": true
+              },
+              {
+                "name": "date",
+                "type": "string",
+                "sample": "24/08/2017",
+                "include": true
+              },
+              {
+                "name": "id",
+                "type": "string",
+                "sample": "10305fdb9613b698a9fe8a26468564ebe15ba01eb870994739180ffc51440c31",
+                "include": true
+              },
+              {
+                "name": "type",
+                "type": "string",
+                "sample": "Public order",
+                "include": true
+              },
+              {
+                "name": "last_outcome",
+                "type": "string",
+                "sample": "Investigation complete; no suspect identified",
+                "include": true
+              },
+              {
+                "name": "note",
+                "type": "string",
+                "sample": "",
+                "include": true
+              },
+              {
+                "name": "charge",
+                "type": "string",
+                "sample": "",
+                "include": true
+              },
+              {
+                "name": ":LABEL",
+                "type": "string",
+                "sample": "Crime",
+                "include": true
+              }
+            ]
+          }
+        ]
+      },
+      "nodeMappings": [
+        {
+          "node": {
+            "$ref": "#n:n0"
+          },
+          "tableSchema": {
+            "$ref": "#t:26"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:1"
+              }
+            },
+            {
+              "fieldName": "areaCode",
+              "property": {
+                "$ref": "#p:2"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n1"
+          },
+          "tableSchema": {
+            "$ref": "#t:28"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:3"
+              }
+            },
+            {
+              "fieldName": "date",
+              "property": {
+                "$ref": "#p:4"
+              }
+            },
+            {
+              "fieldName": "id",
+              "property": {
+                "$ref": "#p:5"
+              }
+            },
+            {
+              "fieldName": "type",
+              "property": {
+                "$ref": "#p:6"
+              }
+            },
+            {
+              "fieldName": "last_outcome",
+              "property": {
+                "$ref": "#p:7"
+              }
+            },
+            {
+              "fieldName": "note",
+              "property": {
+                "$ref": "#p:8"
+              }
+            },
+            {
+              "fieldName": "charge",
+              "property": {
+                "$ref": "#p:9"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n2"
+          },
+          "tableSchema": {
+            "$ref": "#t:27"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:10"
+              }
+            },
+            {
+              "fieldName": "email_address",
+              "property": {
+                "$ref": "#p:11"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n3"
+          },
+          "tableSchema": {
+            "$ref": "#t:1"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:12"
+              }
+            },
+            {
+              "fieldName": "latitude:double",
+              "property": {
+                "$ref": "#p:13"
+              }
+            },
+            {
+              "fieldName": "postcode",
+              "property": {
+                "$ref": "#p:14"
+              }
+            },
+            {
+              "fieldName": "longitude:double",
+              "property": {
+                "$ref": "#p:15"
+              }
+            },
+            {
+              "fieldName": "address",
+              "property": {
+                "$ref": "#p:16"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n4"
+          },
+          "tableSchema": {
+            "$ref": "#t:2"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:17"
+              }
+            },
+            {
+              "fieldName": "description",
+              "property": {
+                "$ref": "#p:18"
+              }
+            },
+            {
+              "fieldName": "id",
+              "property": {
+                "$ref": "#p:19"
+              }
+            },
+            {
+              "fieldName": "type",
+              "property": {
+                "$ref": "#p:20"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n5"
+          },
+          "tableSchema": {
+            "$ref": "#t:3"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:21"
+              }
+            },
+            {
+              "fieldName": "badge_no",
+              "property": {
+                "$ref": "#p:22"
+              }
+            },
+            {
+              "fieldName": "rank",
+              "property": {
+                "$ref": "#p:23"
+              }
+            },
+            {
+              "fieldName": "name",
+              "property": {
+                "$ref": "#p:24"
+              }
+            },
+            {
+              "fieldName": "surname",
+              "property": {
+                "$ref": "#p:25"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n6"
+          },
+          "tableSchema": {
+            "$ref": "#t:4"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:26"
+              }
+            },
+            {
+              "fieldName": "surname",
+              "property": {
+                "$ref": "#p:27"
+              }
+            },
+            {
+              "fieldName": "nhs_no",
+              "property": {
+                "$ref": "#p:28"
+              }
+            },
+            {
+              "fieldName": "name",
+              "property": {
+                "$ref": "#p:29"
+              }
+            },
+            {
+              "fieldName": "age",
+              "property": {
+                "$ref": "#p:30"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n7"
+          },
+          "tableSchema": {
+            "$ref": "#t:5"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:31"
+              }
+            },
+            {
+              "fieldName": "phoneNo",
+              "property": {
+                "$ref": "#p:32"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n8"
+          },
+          "tableSchema": {
+            "$ref": "#t:6"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:33"
+              }
+            },
+            {
+              "fieldName": "call_duration",
+              "property": {
+                "$ref": "#p:34"
+              }
+            },
+            {
+              "fieldName": "call_time",
+              "property": {
+                "$ref": "#p:35"
+              }
+            },
+            {
+              "fieldName": "call_date",
+              "property": {
+                "$ref": "#p:36"
+              }
+            },
+            {
+              "fieldName": "call_type",
+              "property": {
+                "$ref": "#p:37"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n9"
+          },
+          "tableSchema": {
+            "$ref": "#t:7"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:38"
+              }
+            },
+            {
+              "fieldName": "code",
+              "property": {
+                "$ref": "#p:39"
+              }
+            }
+          ]
+        },
+        {
+          "node": {
+            "$ref": "#n:n10"
+          },
+          "tableSchema": {
+            "$ref": "#t:8"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": ":ID",
+              "property": {
+                "$ref": "#p:40"
+              }
+            },
+            {
+              "fieldName": "model",
+              "property": {
+                "$ref": "#p:41"
+              }
+            },
+            {
+              "fieldName": "reg",
+              "property": {
+                "$ref": "#p:42"
+              }
+            },
+            {
+              "fieldName": "make",
+              "property": {
+                "$ref": "#p:43"
+              }
+            },
+            {
+              "fieldName": "year",
+              "property": {
+                "$ref": "#p:44"
+              }
+            }
+          ]
+        }
+      ],
+      "relationshipMappings": [
+        {
+          "relationship": {
+            "$ref": "#r:n0"
+          },
+          "tableSchema": {
+            "$ref": "#t:9"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n1"
+          },
+          "tableSchema": {
+            "$ref": "#t:10"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n2"
+          },
+          "tableSchema": {
+            "$ref": "#t:11"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n3"
+          },
+          "tableSchema": {
+            "$ref": "#t:12"
+          },
+          "propertyMappings": [
+            {
+              "fieldName": "rel_type",
+              "property": {
+                "$ref": "#p:45"
+              }
+            }
+          ],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n4"
+          },
+          "tableSchema": {
+            "$ref": "#t:13"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n5"
+          },
+          "tableSchema": {
+            "$ref": "#t:14"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n6"
+          },
+          "tableSchema": {
+            "$ref": "#t:15"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n7"
+          },
+          "tableSchema": {
+            "$ref": "#t:16"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n8"
+          },
+          "tableSchema": {
+            "$ref": "#t:17"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n9"
+          },
+          "tableSchema": {
+            "$ref": "#t:18"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n10"
+          },
+          "tableSchema": {
+            "$ref": "#t:19"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n11"
+          },
+          "tableSchema": {
+            "$ref": "#t:20"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n12"
+          },
+          "tableSchema": {
+            "$ref": "#t:22"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n13"
+          },
+          "tableSchema": {
+            "$ref": "#t:23"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n14"
+          },
+          "tableSchema": {
+            "$ref": "#t:24"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n15"
+          },
+          "tableSchema": {
+            "$ref": "#t:25"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        },
+        {
+          "relationship": {
+            "$ref": "#r:n16"
+          },
+          "tableSchema": {
+            "$ref": "#t:17"
+          },
+          "propertyMappings": [],
+          "fromMapping": {
+            "fieldName": ":START_ID"
+          },
+          "toMapping": {
+            "fieldName": ":END_ID"
+          }
+        }
+      ]
+    },
+    "configurations": {
+      "idsToIgnore": []
+    }
+  }
+}
