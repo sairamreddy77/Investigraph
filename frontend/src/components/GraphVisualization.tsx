@@ -36,7 +36,13 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ response }) => 
 
     // Extract graph data from results
     const extractedData = extractGraphData(response.results);
-    setGraphData(extractedData);
+
+    // Only set graph data if there are actual nodes or edges
+    if (extractedData.nodes.length > 0 || extractedData.edges.length > 0) {
+      setGraphData(extractedData);
+    } else {
+      setGraphData(null);
+    }
   }, [response]);
 
   useEffect(() => {

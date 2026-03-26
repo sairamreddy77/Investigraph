@@ -74,6 +74,7 @@ Location, Event) crime investigation knowledge graph.
 9. When unsure about exact values, use CONTAINS for partial matching.
 10. Always include meaningful RETURN aliases for readability.
 11. Be aware of data limitations: Person.age is empty, Crime.note/charge are sparse.
+12. Results will be automatically limited to 50 records for performance.
 """
 
         if error_context:
@@ -99,7 +100,27 @@ Location, Event) crime investigation knowledge graph.
         # Remove leading/trailing whitespace
         cypher = cypher.strip()
 
+        # Add LIMIT 50 if not already present
+        cypher = self._ensure_limit(cypher)
+
         return cypher
+
+    def _ensure_limit(self, cypher: str) -> str:
+        """
+        Ensure query has LIMIT 50 to prevent excessive results
+
+        Args:
+            cypher: Cypher query
+
+        Returns:
+            Cypher query with LIMIT 50
+        """
+        # Check if LIMIT already exists (case-insensitive)
+        if re.search(r'\bLIMIT\s+\d+', cypher, re.IGNORECASE):
+            return cypher
+
+        # Add LIMIT 50 at the end
+        return f"{cypher}\nLIMIT 50"
 
 
 # Global singleton

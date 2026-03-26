@@ -113,7 +113,10 @@ function App() {
                 <strong>Auto-Retry:</strong> Automatically fixes syntax errors and reformulates empty results
               </div>
               <div className="feature-item">
-                <strong>Graph Visualization:</strong> Interactive network visualization of query results
+                <strong>Graph Visualization:</strong> Interactive network visualization (shown only when graph data is available)
+              </div>
+              <div className="feature-item">
+                <strong>Optimized Results:</strong> All queries limited to 50 records for fast performance
               </div>
             </div>
           </div>

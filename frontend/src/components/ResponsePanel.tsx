@@ -74,7 +74,14 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
             className="section-header"
             onClick={() => setShowRawResults(!showRawResults)}
           >
-            <h3>Query Results ({response.results.length} rows)</h3>
+            <h3>
+              Query Results ({response.results.length} rows)
+              {response.results.length === 50 && (
+                <span className="limit-indicator" title="Results limited to 50 for performance">
+                  {' '}• Limited to 50
+                </span>
+              )}
+            </h3>
             <span className="toggle-icon">{showRawResults ? '▼' : '▶'}</span>
           </div>
 
