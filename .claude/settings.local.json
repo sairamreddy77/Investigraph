@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(python -c \"from core.few_shot_loader import get_few_shot_loader; loader = get_few_shot_loader\\(\\); examples = loader.load_examples\\(\\); print\\(f''Total examples: {len\\(examples\\)}''\\); investigation = [ex for ex in examples if ''repeat'' in ex.get\\(''question'', ''''\\).lower\\(\\) or ''network'' in ex.get\\(''question'', ''''\\).lower\\(\\) or ''offender'' in ex.get\\(''question'', ''''\\).lower\\(\\)]; print\\(f''Investigation examples: {len\\(investigation\\)}''\\); print\\(''Sample:'', investigation[0][''question''] if investigation else ''None''\\)\")"
+      "Bash(python -c \"from core.few_shot_loader import get_few_shot_loader; loader = get_few_shot_loader\\(\\); examples = loader.load_examples\\(\\); print\\(f''Total examples: {len\\(examples\\)}''\\); investigation = [ex for ex in examples if ''repeat'' in ex.get\\(''question'', ''''\\).lower\\(\\) or ''network'' in ex.get\\(''question'', ''''\\).lower\\(\\) or ''offender'' in ex.get\\(''question'', ''''\\).lower\\(\\)]; print\\(f''Investigation examples: {len\\(investigation\\)}''\\); print\\(''Sample:'', investigation[0][''question''] if investigation else ''None''\\)\")",
+      "Bash(python -c \"import yaml; data = yaml.safe_load\\(open\\(''data/case_studies.yaml'', ''r''\\)\\); print\\(''Case studies loaded:'', len\\(data[''case_studies'']\\)\\); print\\(''Titles:'', [cs[''title''] for cs in data[''case_studies'']]\\)\")",
+      "Bash(python -c \"from core.case_study_loader import get_case_study_loader; loader = get_case_study_loader\\(\\); studies = loader.get_case_studies\\(\\); print\\(f''✓ Loaded {len\\(studies\\)} case studies''\\); print\\(''✓ IDs:'', [s[''id''] for s in studies]\\); print\\(''✓ First study steps:'', len\\(studies[0][''steps'']\\) if studies else 0\\)\")"
     ]
   },
   "enabledPlugins": {

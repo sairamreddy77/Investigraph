@@ -1,0 +1,58 @@
+case_studies:
+  - id: "drug-crime-network-bl1"
+    title: "Drug Crime Network Investigation"
+    description: "Identify repeat drug offenders and detect criminal networks in a target area"
+    category: "Network Analysis"
+    steps:
+      - step: 1
+        goal: "Identify crimes in target area"
+        example_question: "Show crimes in BL1 area"
+        pattern: "Geographic filtering with LOCATION_IN_AREA"
+      - step: 2
+        goal: "Find persons involved"
+        example_question: "Who are involved in these crimes?"
+        pattern: "PARTY_TO relationship traversal"
+      - step: 3
+        goal: "Identify repeat offenders"
+        example_question: "Which of these people are repeat offenders?"
+        pattern: "Aggregation with count > 1 threshold"
+      - step: 4
+        goal: "Detect criminal networks"
+        example_question: "Are these repeat offenders connected to each other?"
+        pattern: "KNOWS relationship network traversal"
+
+  - id: "communication-suspicious-network"
+    title: "Communication-Based Investigation"
+    description: "Identify suspicious communication patterns linked to criminal activity"
+    category: "Communication Analysis"
+    steps:
+      - step: 1
+        goal: "Find high-frequency communications"
+        example_question: "Which phone pairs communicate frequently?"
+        pattern: "PhoneCall aggregation with call_count threshold"
+      - step: 2
+        goal: "Identify phone owners"
+        example_question: "Who owns these phones?"
+        pattern: "HAS_PHONE relationship lookup"
+      - step: 3
+        goal: "Cross-reference with crimes"
+        example_question: "Which of these people are involved in crimes?"
+        pattern: "PARTY_TO filtering on identified persons"
+
+  - id: "area-crime-hotspot"
+    title: "Area Crime Hotspot Analysis"
+    description: "Identify high-crime areas and analyze patterns within them"
+    category: "Geographic Analysis"
+    steps:
+      - step: 1
+        goal: "Find highest crime areas"
+        example_question: "Which area has the most crimes?"
+        pattern: "Aggregation by AREA with count and ORDER BY"
+      - step: 2
+        goal: "Analyze crime types in hotspot"
+        example_question: "What types of crimes occur in this area?"
+        pattern: "Filter by area and group by crime type"
+      - step: 3
+        goal: "Identify repeat locations"
+        example_question: "Which specific locations have multiple crimes?"
+        pattern: "Group by Location within area, count > 1"

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import InvestigationWorkflows from './InvestigationWorkflows';
 import './QueryPanel.css';
 
 interface QueryPanelProps {
@@ -71,6 +72,13 @@ const QueryPanel: React.FC<QueryPanelProps> = ({ onSubmit, isLoading, error }) =
           <strong>Error:</strong> {error}
         </div>
       )}
+
+      <InvestigationWorkflows
+        onSelectQuestion={(question) => {
+          setQuestion(question);
+        }}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

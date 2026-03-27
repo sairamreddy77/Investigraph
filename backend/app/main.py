@@ -21,6 +21,7 @@ from app.models import (
 from core.pipeline import get_pipeline
 from core.schema_introspector import get_schema_introspector
 from core.few_shot_loader import get_few_shot_loader
+from core.case_study_loader import get_case_study_loader
 
 # Configure logging
 settings = get_settings()
@@ -52,6 +53,12 @@ async def lifespan(app: FastAPI):
         pipeline = get_pipeline()
         pipeline.initialize()
         logger.info("Pipeline initialization complete")
+
+        # Pre-load case studies
+        logger.info("Loading case studies...")
+        case_study_loader = get_case_study_loader()
+        case_studies = case_study_loader.load()
+        logger.info(f"Loaded {len(case_studies)} case studies")
 
         logger.info(f"API ready on port {settings.BACKEND_PORT}")
 
@@ -156,6 +163,7 @@ async def root():
             "query": "/api/query",
             "schema": "/api/schema",
             "examples": "/api/examples",
+            "case_studies": "/api/case-studies",
             "health": "/health"
         }
     }
@@ -354,6 +362,44 @@ async def get_examples():
         raise HTTPException(
             status_code=500,
             detail=f"Failed to fetch examples: {str(e)}"
+        )
+
+
+@app.get("/api/case-studies", tags=["Investigation"])
+async def get_case_studies():
+    """
+    Get investigation case studies endpoint
+
+    Returns structured investigation workflows demonstrating
+    multi-step investigation patterns for POLE analysis.
+
+    Each case study includes:
+    - ID and title
+    - Description and category
+    - Step-by-step methodology with example questions
+
+    Returns:
+        JSON with case_studies array and count
+
+    Raises:
+        HTTPException: If case studies cannot be loaded
+    """
+    try:
+        logger.info("Fetching case studies")
+
+        case_study_loader = get_case_study_loader()
+        case_studies = case_study_loader.get_case_studies()
+
+        return {
+            "case_studies": case_studies,
+            "count": len(case_studies)
+        }
+
+    except Exception as e:
+        logger.error(f"Case studies fetch error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch case studies: {str(e)}"
         )
 
 
