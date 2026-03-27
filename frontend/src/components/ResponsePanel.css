@@ -10,8 +10,37 @@
   color: #646cff;
 }
 
+.question-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.question-section h3 {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.question-text {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #fff;
+  margin: 0;
+}
+
 .answer-section {
   margin-bottom: 1.5rem;
+}
+
+.answer-section h3 {
+  color: #888;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .answer-content {

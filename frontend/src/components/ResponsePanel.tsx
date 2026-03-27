@@ -19,10 +19,17 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
 
   return (
     <div className="response-panel">
-      <h2>Response</h2>
+      {/* Question */}
+      {response.question && (
+        <div className="question-section">
+          <h3>Question</h3>
+          <p className="question-text">{response.question}</p>
+        </div>
+      )}
 
       {/* Natural Language Answer */}
       <div className="answer-section">
+        <h3>Answer</h3>
         <div className="answer-content">
           {response.answer}
         </div>
@@ -34,9 +41,9 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
               Attempts: {response.attempts}
             </span>
           )}
-          {response.execution_time && (
+          {response.execution_time_ms && (
             <span className="metadata-item">
-              Time: {response.execution_time.toFixed(2)}s
+              Time: {response.execution_time_ms}ms
             </span>
           )}
         </div>

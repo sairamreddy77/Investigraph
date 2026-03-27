@@ -16,7 +16,10 @@
       "Bash(python -m pytest tests/test_answer_generator.py::test_answer_generator_initializes -v -s)",
       "Bash(python -m pytest --version)",
       "Bash(python3 -m py_compile core/query_executor.py tests/test_query_executor.py)",
-      "Bash(python -m py_compile core/query_executor.py tests/test_query_executor.py)"
+      "Bash(python -m py_compile core/query_executor.py tests/test_query_executor.py)",
+      "Bash(find /c/Investigraph -name *.json -type f)",
+      "Bash(find . -maxdepth 3 -name *.py -type f)",
+      "Bash(python3 -c \"from neo4j.graph import Node, Relationship, Path; print\\(''Neo4j graph types available''\\)\")"
     ]
   }
 }

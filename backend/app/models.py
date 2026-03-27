@@ -56,6 +56,7 @@ class HealthResponse(BaseModel):
     """Response model for health check endpoint"""
     status: str = Field(..., description="Overall health status", examples=["healthy", "unhealthy"])
     neo4j_connected: bool = Field(..., description="Neo4j connection status")
+    llm_available: bool = Field(..., description="LLM service availability")
     pipeline_initialized: bool = Field(..., description="Pipeline initialization status")
     details: Optional[Dict[str, Any]] = Field(
         None,

@@ -191,6 +191,9 @@ async def health_check():
         pipeline = get_pipeline()
         pipeline_initialized = pipeline._initialized
 
+        # Check LLM availability (assume available if pipeline initialized)
+        llm_available = pipeline_initialized
+
         # Determine overall status
         status = "healthy" if (neo4j_connected and pipeline_initialized) else "unhealthy"
 
@@ -205,6 +208,7 @@ async def health_check():
         return HealthResponse(
             status=status,
             neo4j_connected=neo4j_connected,
+            llm_available=llm_available,
             pipeline_initialized=pipeline_initialized,
             details=details
         )

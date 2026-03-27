@@ -129,33 +129,94 @@ Common issues:
         Extract nodes and edges from results for graph visualization
 
         Args:
-            results: Query results
+            results: Query results from Neo4j
 
         Returns:
             Dict with 'nodes' and 'edges' lists
         """
-        nodes = []
+        from neo4j.graph import Node, Relationship, Path
+
+        nodes_dict = {}  # Use dict to avoid duplicates
         edges = []
-        seen_nodes = set()
 
         for record in results:
             for key, value in record.items():
-                # Check if value is a node
-                if isinstance(value, dict) and "labels" in str(type(value)):
-                    node_id = value.get("id", value.get("elementId", key))
-                    if node_id not in seen_nodes:
-                        nodes.append({
-                            "id": str(node_id),
-                            "label": value.get("labels", ["Unknown"])[0] if "labels" in str(type(value)) else "Node",
-                            "properties": {k: v for k, v in value.items() if k not in ["id", "elementId"]}
-                        })
-                        seen_nodes.add(node_id)
+                # Check if value is a Neo4j Node
+                if isinstance(value, Node):
+                    node_id = str(value.element_id)
+                    if node_id not in nodes_dict:
+                        nodes_dict[node_id] = {
+                            "id": node_id,
+                            "label": list(value.labels)[0] if value.labels else "Node",
+                            "properties": dict(value)
+                        }
 
-        # Note: Edge extraction requires relationship objects in results
-        # This is a simplified version - full implementation would parse relationships
+                # Check if value is a Neo4j Relationship
+                elif isinstance(value, Relationship):
+                    edges.append({
+                        "source": str(value.start_node.element_id),
+                        "target": str(value.end_node.element_id),
+                        "relationship": value.type,
+                        "properties": dict(value)
+                    })
+
+                    # Also add the nodes from this relationship if not already present
+                    start_id = str(value.start_node.element_id)
+                    if start_id not in nodes_dict:
+                        nodes_dict[start_id] = {
+                            "id": start_id,
+                            "label": list(value.start_node.labels)[0] if value.start_node.labels else "Node",
+                            "properties": dict(value.start_node)
+                        }
+
+                    end_id = str(value.end_node.element_id)
+                    if end_id not in nodes_dict:
+                        nodes_dict[end_id] = {
+                            "id": end_id,
+                            "label": list(value.end_node.labels)[0] if value.end_node.labels else "Node",
+                            "properties": dict(value.end_node)
+                        }
+
+                # Check if value is a Neo4j Path
+                elif isinstance(value, Path):
+                    for node in value.nodes:
+                        node_id = str(node.element_id)
+                        if node_id not in nodes_dict:
+                            nodes_dict[node_id] = {
+                                "id": node_id,
+                                "label": list(node.labels)[0] if node.labels else "Node",
+                                "properties": dict(node)
+                            }
+
+                    for rel in value.relationships:
+                        edges.append({
+                            "source": str(rel.start_node.element_id),
+                            "target": str(rel.end_node.element_id),
+                            "relationship": rel.type,
+                            "properties": dict(rel)
+                        })
+
+                # Check if value is a list (may contain nodes/relationships)
+                elif isinstance(value, list):
+                    for item in value:
+                        if isinstance(item, Node):
+                            node_id = str(item.element_id)
+                            if node_id not in nodes_dict:
+                                nodes_dict[node_id] = {
+                                    "id": node_id,
+                                    "label": list(item.labels)[0] if item.labels else "Node",
+                                    "properties": dict(item)
+                                }
+                        elif isinstance(item, Relationship):
+                            edges.append({
+                                "source": str(item.start_node.element_id),
+                                "target": str(item.end_node.element_id),
+                                "relationship": item.type,
+                                "properties": dict(item)
+                            })
 
         return {
-            "nodes": nodes[:100],  # Limit to 100 nodes for performance
+            "nodes": list(nodes_dict.values())[:100],  # Limit to 100 nodes for performance
             "edges": edges[:100]
         }
 

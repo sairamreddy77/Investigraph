@@ -144,6 +144,19 @@
   color: #888;
 }
 
+.message-history {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.message-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .app-footer {
   background-color: rgba(255, 255, 255, 0.05);
   padding: 1.5rem;

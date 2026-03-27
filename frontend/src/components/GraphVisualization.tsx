@@ -29,17 +29,30 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ response }) => 
   const [graphData, setGraphData] = useState<{ nodes: GraphNode[]; edges: GraphEdge[] } | null>(null);
 
   useEffect(() => {
-    if (!response || !response.results || response.results.length === 0) {
+    if (!response) {
       setGraphData(null);
       return;
     }
 
-    // Extract graph data from results
-    const extractedData = extractGraphData(response.results);
+    // Use graph_data from API response if available
+    if (response.graph_data &&
+        (response.graph_data.nodes.length > 0 || response.graph_data.edges.length > 0)) {
+      // Convert API format to vis-network format
+      const nodes: GraphNode[] = response.graph_data.nodes.map(node => ({
+        id: node.id,
+        label: getDisplayLabel(node),
+        group: node.label,
+        title: generateNodeTooltip(node),
+      }));
 
-    // Only set graph data if there are actual nodes or edges
-    if (extractedData.nodes.length > 0 || extractedData.edges.length > 0) {
-      setGraphData(extractedData);
+      const edges: GraphEdge[] = response.graph_data.edges.map(edge => ({
+        from: edge.source,
+        to: edge.target,
+        label: edge.relationship,
+        title: generateEdgeTooltip(edge),
+      }));
+
+      setGraphData({ nodes, edges });
     } else {
       setGraphData(null);
     }
@@ -152,111 +165,11 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ response }) => 
   );
 };
 
-// Helper function to extract graph data from query results
-function extractGraphData(results: Array<Record<string, any>>): { nodes: GraphNode[]; edges: GraphEdge[] } {
-  const nodes = new Map<string, GraphNode>();
-  const edges: GraphEdge[] = [];
-  let edgeId = 0;
-
-  results.forEach((row) => {
-    Object.entries(row).forEach(([key, value]) => {
-      // Check if value is a node (Neo4j node object)
-      if (isNode(value)) {
-        const nodeId = getNodeId(value);
-        if (!nodes.has(nodeId)) {
-          nodes.set(nodeId, {
-            id: nodeId,
-            label: getNodeLabel(value),
-            group: getNodeGroup(value),
-            title: getNodeTooltip(value),
-          });
-        }
-      }
-      // Check if value is a relationship (Neo4j relationship object)
-      else if (isRelationship(value)) {
-        edges.push({
-          from: String(value.start),
-          to: String(value.end),
-          label: value.type || '',
-          title: getRelationshipTooltip(value),
-        });
-      }
-      // Check if value is a path (Neo4j path object)
-      else if (isPath(value)) {
-        // Extract nodes and relationships from path
-        if (value.segments) {
-          value.segments.forEach((segment: any) => {
-            if (segment.start) {
-              const startId = getNodeId(segment.start);
-              if (!nodes.has(startId)) {
-                nodes.set(startId, {
-                  id: startId,
-                  label: getNodeLabel(segment.start),
-                  group: getNodeGroup(segment.start),
-                  title: getNodeTooltip(segment.start),
-                });
-              }
-            }
-            if (segment.end) {
-              const endId = getNodeId(segment.end);
-              if (!nodes.has(endId)) {
-                nodes.set(endId, {
-                  id: endId,
-                  label: getNodeLabel(segment.end),
-                  group: getNodeGroup(segment.end),
-                  title: getNodeTooltip(segment.end),
-                });
-              }
-            }
-            if (segment.relationship) {
-              edges.push({
-                from: getNodeId(segment.start),
-                to: getNodeId(segment.end),
-                label: segment.relationship.type || '',
-                title: getRelationshipTooltip(segment.relationship),
-              });
-            }
-          });
-        }
-      }
-    });
-  });
-
-  return {
-    nodes: Array.from(nodes.values()),
-    edges,
-  };
-}
-
-// Type guards and helper functions
-function isNode(value: any): boolean {
-  return value && typeof value === 'object' && 'identity' in value && 'labels' in value;
-}
-
-function isRelationship(value: any): boolean {
-  return value && typeof value === 'object' && 'type' in value && 'start' in value && 'end' in value;
-}
-
-function isPath(value: any): boolean {
-  return value && typeof value === 'object' && 'segments' in value;
-}
-
-function getNodeId(node: any): string {
-  return node.identity?.toString() || node.id?.toString() || String(Math.random());
-}
-
-function getNodeGroup(node: any): string {
-  if (node.labels && node.labels.length > 0) {
-    return node.labels[0];
-  }
-  return 'default';
-}
-
-function getNodeLabel(node: any): string {
-  if (!node.properties) return 'Node';
-
+// Helper functions for visualization
+function getDisplayLabel(node: { label: string; properties: Record<string, any> }): string {
   // Try common name properties
   const nameProps = ['name', 'surname', 'type', 'description', 'address', 'make', 'model', 'phoneNo', 'email_address', 'code', 'areaCode'];
+
   for (const prop of nameProps) {
     if (node.properties[prop]) {
       return String(node.properties[prop]);
@@ -269,35 +182,28 @@ function getNodeLabel(node: any): string {
     return parts.join(' ');
   }
 
-  // Use label if available
-  if (node.labels && node.labels.length > 0) {
-    return node.labels[0];
-  }
-
-  return 'Node';
+  // Use node label as fallback
+  return node.label;
 }
 
-function getNodeTooltip(node: any): string {
-  if (!node.properties) return '';
-
+function generateNodeTooltip(node: { label: string; properties: Record<string, any> }): string {
   const props = Object.entries(node.properties)
     .map(([key, value]) => `${key}: ${value}`)
     .join('\n');
 
-  const label = node.labels ? node.labels.join(', ') : '';
-  return label ? `${label}\n---\n${props}` : props;
+  return `${node.label}\n---\n${props}`;
 }
 
-function getRelationshipTooltip(rel: any): string {
-  if (!rel.properties || Object.keys(rel.properties).length === 0) {
-    return rel.type || '';
+function generateEdgeTooltip(edge: { relationship: string; properties: Record<string, any> }): string {
+  if (!edge.properties || Object.keys(edge.properties).length === 0) {
+    return edge.relationship;
   }
 
-  const props = Object.entries(rel.properties)
+  const props = Object.entries(edge.properties)
     .map(([key, value]) => `${key}: ${value}`)
     .join('\n');
 
-  return `${rel.type || 'Relationship'}\n---\n${props}`;
+  return `${edge.relationship}\n---\n${props}`;
 }
 
 export default GraphVisualization;
