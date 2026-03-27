@@ -75,6 +75,34 @@ Location, Event) crime investigation knowledge graph.
 10. Always include meaningful RETURN aliases for readability.
 11. Be aware of data limitations: Person.age is empty, Crime.note/charge are sparse.
 12. Results will be automatically limited to 50 records for performance.
+
+═══ INVESTIGATION METHODOLOGY ═══
+13. REPEAT OFFENDER: Person connected to MORE THAN 1 Crime via PARTY_TO relationship.
+    Pattern: WITH p, count(DISTINCT c) AS crime_count WHERE crime_count > 1
+
+14. CONNECTED PERSONS: Use KNOWS, KNOWS_LW, or KNOWS_PHONE relationships.
+    Pattern: MATCH (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE]->(p2)
+    Note: Schema uses KNOWS_PHONE (not KNOWS_SN from older docs).
+
+15. MULTI-STEP INVESTIGATIONS: Use WITH to preserve variables between steps.
+    Template:
+      Step 1: Filter by geography/type → WITH preserved_vars
+      Step 2: Aggregate or threshold → WITH preserved_vars
+      Step 3: Traverse relationships → WITH preserved_vars
+      Step 4: RETURN final results
+
+16. NETWORK ANALYSIS: For "connected", "linked", "know each other" questions:
+    (a) First identify target entity set (e.g., repeat offenders in area)
+    (b) Then apply relationship traversal (KNOWS relationships)
+    (c) Finally filter connected entities by same criteria
+
+17. DATA SPARSITY WARNING: PARTY_TO has only 55 records for 28,762 crimes (0.19%).
+    If PARTY_TO query returns empty: suggest broader search or note data limitation.
+
+18. COMMUNICATION ANALYSIS: For phone pattern questions:
+    - PhoneCall -[:CALLER]-> Phone, PhoneCall -[:CALLED]-> Phone
+    - Person -[:HAS_PHONE]-> Phone
+    - Use frequency thresholds: WITH count(pc) AS call_count WHERE call_count > N
 """
 
         if error_context:

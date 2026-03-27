@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { getExamples, ExampleQuery } from '../services/api';
+import React, { useState } from 'react';
 import './QueryPanel.css';
 
 interface QueryPanelProps {
@@ -10,22 +9,6 @@ interface QueryPanelProps {
 
 const QueryPanel: React.FC<QueryPanelProps> = ({ onSubmit, isLoading, error }) => {
   const [question, setQuestion] = useState('');
-  const [examples, setExamples] = useState<ExampleQuery[]>([]);
-  const [showExamples, setShowExamples] = useState(true);
-
-  useEffect(() => {
-    loadExamples();
-  }, []);
-
-  const loadExamples = async () => {
-    try {
-      const response = await getExamples();
-      // Get first 6 examples for quick selection
-      setExamples(response.examples.slice(0, 6));
-    } catch (err) {
-      console.error('Failed to load examples:', err);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,11 +21,6 @@ const QueryPanel: React.FC<QueryPanelProps> = ({ onSubmit, isLoading, error }) =
     } else {
       console.log('Submit blocked - empty question or already loading');
     }
-  };
-
-  const handleExampleClick = (exampleQuestion: string) => {
-    setQuestion(exampleQuestion);
-    setShowExamples(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -91,30 +69,6 @@ const QueryPanel: React.FC<QueryPanelProps> = ({ onSubmit, isLoading, error }) =
       {error && (
         <div className="error-message">
           <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {examples.length > 0 && (
-        <div className="examples-section">
-          <div className="examples-header" onClick={() => setShowExamples(!showExamples)}>
-            <h3>Example Questions</h3>
-            <span className="toggle-icon">{showExamples ? '▼' : '▶'}</span>
-          </div>
-
-          {showExamples && (
-            <div className="examples-list">
-              {examples.map((example, index) => (
-                <button
-                  key={index}
-                  className="example-button"
-                  onClick={() => handleExampleClick(example.question)}
-                  disabled={isLoading}
-                >
-                  {example.question}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       )}
     </div>

@@ -3,6 +3,11 @@
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+  background-color: rgba(13, 13, 13, 0.95);
 }
 
 .query-panel h2 {
@@ -56,64 +61,8 @@
   color: #ff6b6b;
 }
 
-.examples-section {
-  margin-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 1rem;
-}
-
-.examples-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-}
-
-.examples-header h3 {
-  color: #888;
-  font-size: 1.1rem;
-}
-
-.toggle-icon {
-  color: #888;
-  font-size: 0.8rem;
-}
-
-.examples-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.example-button {
-  text-align: left;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.75rem;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  transition: all 0.2s;
-}
-
-.example-button:hover:not(:disabled) {
-  background-color: rgba(100, 108, 255, 0.1);
-  border-color: #646cff;
-  transform: translateY(-2px);
-}
-
 @media (prefers-color-scheme: light) {
   .query-panel {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-
-  .example-button {
-    background-color: rgba(0, 0, 0, 0.02);
-    border-color: rgba(0, 0, 0, 0.1);
-  }
-
-  .example-button:hover:not(:disabled) {
-    background-color: rgba(100, 108, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.95);
   }
 }

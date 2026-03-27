@@ -142,3 +142,83 @@ examples:
     cypher: |
       MATCH (pc:PhoneCall)
       RETURN avg(pc.call_duration) AS avg_duration
+
+  # ── INVESTIGATION PATTERNS ─────────────────────────
+  - question: "Find repeat offenders in area BL1"
+    cypher: |
+      MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WHERE toLower(a.areaCode) CONTAINS 'bl1'
+      WITH p, count(DISTINCT c) AS crime_count
+      WHERE crime_count > 1
+      RETURN p.name, p.surname, crime_count
+      ORDER BY crime_count DESC
+
+  - question: "Are repeat offenders in BL1 connected to each other?"
+    cypher: |
+      MATCH (p1:Person)-[:PARTY_TO]->(c:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WHERE toLower(a.areaCode) CONTAINS 'bl1'
+      WITH p1, count(DISTINCT c) AS crime_count
+      WHERE crime_count > 1
+      MATCH (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE]->(p2:Person)
+      MATCH (p2)-[:PARTY_TO]->(c2:Crime)
+            -[:OCCURRED_AT]->(l2:Location)
+            -[:LOCATION_IN_AREA]->(a2:AREA)
+      WHERE toLower(a2.areaCode) CONTAINS 'bl1'
+      WITH p1, p2, count(DISTINCT c2) AS c2_count
+      WHERE c2_count > 1
+      RETURN p1.name AS offender1, p2.name AS offender2
+
+  - question: "Which phone pairs communicate frequently and are linked to crimes?"
+    cypher: |
+      MATCH (pc:PhoneCall)-[:CALLER]->(ph1:Phone)
+      MATCH (pc)-[:CALLED]->(ph2:Phone)
+      WITH ph1, ph2, count(pc) AS call_count
+      WHERE call_count > 5
+      MATCH (p1:Person)-[:HAS_PHONE]->(ph1)
+      MATCH (p2:Person)-[:HAS_PHONE]->(ph2)
+      MATCH (p1)-[:PARTY_TO]->(:Crime)
+      MATCH (p2)-[:PARTY_TO]->(:Crime)
+      RETURN p1.name AS person1, p2.name AS person2,
+             ph1.phoneNo AS phone1, ph2.phoneNo AS phone2,
+             call_count
+      ORDER BY call_count DESC
+
+  - question: "Find criminal networks in area WN"
+    cypher: |
+      MATCH (p1:Person)-[:PARTY_TO]->(c1:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WHERE toLower(a.areaCode) CONTAINS 'wn'
+      WITH p1, count(DISTINCT c1) AS p1_crimes
+      MATCH (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE]->(p2:Person)
+      MATCH (p2)-[:PARTY_TO]->(c2:Crime)
+      WITH p1, p2, p1_crimes, count(DISTINCT c2) AS p2_crimes
+      RETURN p1.name, p2.name, p1_crimes, p2_crimes
+
+  - question: "Who are the most active offenders in each area?"
+    cypher: |
+      MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
+            -[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WITH a.areaCode AS area, p, count(DISTINCT c) AS crime_count
+      WHERE crime_count > 1
+      WITH area, collect({name: p.name, crimes: crime_count}) AS offenders
+      RETURN area, offenders
+      ORDER BY size(offenders) DESC
+
+  - question: "Find communication patterns between known offenders"
+    cypher: |
+      MATCH (p1:Person)-[:PARTY_TO]->(:Crime)
+      MATCH (p2:Person)-[:PARTY_TO]->(:Crime)
+      MATCH (p1)-[:HAS_PHONE]->(ph1:Phone)
+      MATCH (p2)-[:HAS_PHONE]->(ph2:Phone)
+      MATCH (pc:PhoneCall)-[:CALLER]->(ph1)
+      MATCH (pc)-[:CALLED]->(ph2)
+      WITH p1, p2, count(pc) AS call_count
+      WHERE call_count > 0
+      RETURN p1.name AS caller, p2.name AS receiver, call_count
+      ORDER BY call_count DESC

@@ -107,7 +107,13 @@ Suggestions:
 - Use CONTAINS instead of exact matches
 - Check relationship direction matches schema
 - Verify property names match schema exactly
-- Consider that PARTY_TO relationships are sparse (only 55 records)
+- Consider data limitations:
+  * PARTY_TO relationships are sparse (only 55 records / 28,762 crimes)
+  * Person.age is always empty - avoid age filters
+  * Crime.note/charge are 99% empty
+- For repeat offender queries: Reduce threshold (e.g., crime_count > 0 instead of > 1)
+- For network queries: Check if target entity set exists first before traversing
+- For area queries: Use CONTAINS 'prefix' (e.g., 'bl' instead of 'bl1' for broader match)
 """
 
     def _build_syntax_error_context(self, cypher: str, error: str) -> str:

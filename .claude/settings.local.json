@@ -1,10 +1,11 @@
 {
-  "enabledPlugins": {
-    "superpowers@claude-plugins-official": true
-  },
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(python -c \"from core.few_shot_loader import get_few_shot_loader; loader = get_few_shot_loader\\(\\); examples = loader.load_examples\\(\\); print\\(f''Total examples: {len\\(examples\\)}''\\); investigation = [ex for ex in examples if ''repeat'' in ex.get\\(''question'', ''''\\).lower\\(\\) or ''network'' in ex.get\\(''question'', ''''\\).lower\\(\\) or ''offender'' in ex.get\\(''question'', ''''\\).lower\\(\\)]; print\\(f''Investigation examples: {len\\(investigation\\)}''\\); print\\(''Sample:'', investigation[0][''question''] if investigation else ''None''\\)\")"
     ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }
