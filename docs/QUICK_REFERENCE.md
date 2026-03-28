@@ -85,7 +85,7 @@ Step 3: Generate Answer
 
 **Backend:**
 - FastAPI (Python web framework)
-- LangChain (LLM orchestration)
+- Groq Client LLM Wrapper (Python SDK for LLM orchestration)
 - Neo4j Driver
 - Pydantic (validation)
 
