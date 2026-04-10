@@ -249,7 +249,10 @@ class GraphRAGPipeline:
 
         try:
             if retriever_name == "text2cypher":
-                # Use retry wrapper directly for Text2Cypher
+                # Use retry wrapper for Text2Cypher (handles retries on
+                # syntax errors and empty results).  The wrapper calls the
+                # underlying Text2CypherRetriever.search() which already
+                # generates Cypher via the LLM, runs it, and returns results.
                 retriever_result = self._text2cypher.search(query_text=question)
                 context_items = [item.content for item in retriever_result.items]
 
@@ -258,15 +261,17 @@ class GraphRAGPipeline:
                     if hasattr(item, 'metadata') and item.metadata:
                         cypher = item.metadata.get("cypher", cypher)
 
-                # Generate answer using RAG
-                rag = self._rag_instances.get("text2cypher")
-                if rag:
-                    rag_result = rag.search(
-                        query_text=question,
-                        retriever_config={"top_k": self.settings.GRAPHRAG_TOP_K},
-                        return_context=True,
-                    )
-                    answer = rag_result.answer
+                # Generate answer from the already-retrieved context.
+                # We use the LLM directly instead of GraphRAG.search() to
+                # avoid a redundant second retriever call (Text2Cypher
+                # doesn't accept top_k and would re-generate Cypher).
+                if context_items:
+                    from core.prompts import get_rag_answer_template
+                    template = get_rag_answer_template()
+                    context_str = "\n\n".join(context_items)
+                    prompt = template.replace("{query_text}", question).replace("{context}", context_str)
+                    llm_response = self.llm.invoke(prompt)
+                    answer = llm_response.content
 
                 # Build results from context
                 results = [{"context": ctx} for ctx in context_items]
