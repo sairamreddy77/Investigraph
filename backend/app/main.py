@@ -228,6 +228,7 @@ async def health_check():
         return HealthResponse(
             status="unhealthy",
             neo4j_connected=False,
+            llm_available=False,
             pipeline_initialized=False,
             details={"error": str(e)}
         )
