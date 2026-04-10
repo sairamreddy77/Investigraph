@@ -164,3 +164,71 @@ TypeError: GroqLLM.invoke() got an unexpected keyword argument 'message_history'
 2026-04-11 00:43:37,378 - app.main - INFO - ━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in 3954ms
 2026-04-11 00:43:37,379 - app.main - INFO - ━━━ RESPONSE ━━━ POST /api/query - Status: 200 - Duration: 3969ms       
 INFO:     127.0.0.1:53872 - "POST /api/query HTTP/1.1" 200 OK
+
+
+my prompt - Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases.
+
+
+previous system generated cypher answer.
+
+MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:Area)
+WHERE toLower(c.type) CONTAINS 'drug' 
+  AND toLower(a.areaCode) CONTAINS 'bl6' 
+  AND toLower(c.last_outcome) CONTAINS 'under investigation'
+
+OPTIONAL MATCH (p:Person)-[:PARTY_TO]->(c)
+OPTIONAL MATCH (c)-[:INVESTIGATED_BY]->(o:Officer)
+OPTIONAL MATCH (obj:Object)-[:INVOLVED_IN]->(c)
+OPTIONAL MATCH (v:Vehicle)-[:INVOLVED_IN]->(c)
+
+RETURN c.id AS crime_id, 
+       c.type AS crime_type, 
+       c.last_outcome AS status, 
+       p.name AS person_involved, 
+       p.surname AS person_surname, 
+       obj.description AS evidence, 
+       obj.type AS evidence_type, 
+       v.make AS vehicle_make, 
+       v.model AS vehicle_model, 
+       o.name AS investigating_officer, 
+       o.rank AS officer_rank
+LIMIT 50
+
+
+current answer and logs - 
+
+No drug-related crimes in the BL6 area are found under investigation in the provided context. 
+
+The context only lists crimes in areas M23, OL11, OL4, M35, and OL9, but none in BL6. 
+
+To find the required information, more data or context regarding the BL6 area is needed.
+
+context
+Crime: Drugs (ID: b1c41ddb8a3334824a3f0de3b68440d75ecfb0ed189a519e5a321ea0012fd1fa) Date: 6/08/2017 Outcome: Investigation complete; no suspect identified Location: 45 Ackworth Drive, M23 1LD Area: M23 Investigating officers: Hernando (Sergeant)
+Crime: Drugs (ID: de7cb689159d868a810342c957b8879019017dd6f54126123447212f4366eaa5) Date: 26/08/2017 Outcome: Investigation complete; no suspect identified Location: 140 Curzon Road, OL11 2RU Area: OL11 Investigating officers: Lothario (Police Constable)
+Crime: Drugs (ID: 21e5092e66d2e92f3c17183174b60c934d426b679f03287ae2479227eab54570) Date: 12/08/2017 Outcome: Investigation complete; no suspect identified Location: 87 Clifton Close, OL4 1QT Area: OL4 Investigating officers: Ryan (Police Constable)
+Crime: Drugs (ID: d813096d1e821b6993cc8f4d9254acbb0e8b499aa1636206384d572d743c42c8) Date: 26/08/2017 Outcome: Investigation complete; no suspect identified Location: 105 Oldham Road, M35 9AE Area: M35 Investigating officers: Rowe (Inspector)
+Crime: Drugs (ID: f1de354017206ea25a3d220ef18ab35d7288a68670edb2eef4a841ab6f0f400f) Date: 26/08/2017 Outcome: Investigation complete; no suspect identified Location: 117 Canal Street, OL9 7HH Area: OL9 Investigating officers: Allard (Inspector)
+
+2026-04-11 00:53:53,485 - app.main - INFO - ━━━ INCOMING REQUEST ━━━
+2026-04-11 00:53:53,485 - app.main - INFO - Method: POST
+2026-04-11 00:53:53,486 - app.main - INFO - URL: http://localhost:8000/api/query
+2026-04-11 00:53:53,486 - app.main - INFO - Path: /api/query
+2026-04-11 00:53:53,486 - app.main - INFO - Query Params: {}
+2026-04-11 00:53:53,487 - app.main - INFO - Headers: {'host': 'localhost:8000', 'connection': 'close', 'content-length': '171', 'sec-ch-ua-platform': '"Windows"', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', 'sec-ch-ua': '"Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"', 'content-type': 'application/json', 'sec-ch-ua-mobile': '?0', 'accept': '*/*', 'origin': 'http://localhost:3000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty', 'referer': 'http://localhost:3000/', 'accept-encoding': 'gzip, deflate, br, zstd', 'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8,te;q=0.7,hi;q=0.6', 'cookie': 'ajs_anonymous_id=753d38e2-2d3d-4665-b940-6d5aa2b5127b; ajs_user_id=07880532-1a96-511e-ac61-ce9f04b34c5c; _streamlit_xsrf=2|a45b20c5|5f05507762e695230133187bd09b001d|1775832914'}
+2026-04-11 00:53:53,487 - app.main - INFO - Client: Address(host='127.0.0.1', port=61252)
+2026-04-11 00:53:53,489 - app.main - INFO - ━━━ QUERY ENDPOINT START ━━━
+2026-04-11 00:53:53,489 - app.main - INFO - Question received: Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases.
+2026-04-11 00:53:53,490 - app.main - INFO - Getting GraphRAG pipeline instance...
+2026-04-11 00:53:53,490 - app.main - INFO - Pipeline initialized: True
+2026-04-11 00:53:53,490 - app.main - INFO - Running GraphRAG pipeline...
+2026-04-11 00:53:53,490 - core.graphrag_pipeline - INFO - Running GraphRAG pipeline for: Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases.
+2026-04-11 00:53:53,491 - core.graphrag_pipeline - INFO - Selected retriever: vector_cypher
+Batches: 100%|███████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 27.96it/s]
+2026-04-11 00:53:55,682 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-11 00:53:55,694 - core.graphrag_pipeline - INFO - GraphRAG pipeline completed in 2204ms (retriever: vector_cypher)
+2026-04-11 00:53:55,695 - app.main - INFO - Pipeline result keys: dict_keys(['question', 'answer', 'cypher', 'results', 'graph_data', 'attempts', 'execution_time_ms', 'retriever_used', 'retriever_context'])
+2026-04-11 00:53:55,696 - app.main - INFO - Converting to response model...
+2026-04-11 00:53:55,696 - app.main - INFO - ━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in 2204ms
+2026-04-11 00:53:55,697 - app.main - INFO - ━━━ RESPONSE ━━━ POST /api/query - Status: 200 - Duration: 2212ms       
+INFO:     127.0.0.1:61252 - "POST /api/query HTTP/1.1" 200 OK
