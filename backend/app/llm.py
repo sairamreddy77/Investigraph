@@ -1,10 +1,11 @@
 # backend/app/llm.py
 """LLM client wrappers for both legacy pipeline and neo4j-graphrag"""
-from typing import Optional
+from typing import List, Optional, Union
 from groq import Groq
 import logging
 
 from neo4j_graphrag.llm import LLMInterface, LLMResponse
+from neo4j_graphrag.types import LLMMessage
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -19,12 +20,19 @@ class GroqLLM(LLMInterface):
         self.model_name = model_name
         self.model_params = model_params or {}
 
-    def invoke(self, input: str) -> LLMResponse:
+    def invoke(
+        self,
+        input: str,
+        message_history: Optional[Union[List[LLMMessage], "MessageHistory"]] = None,
+        system_instruction: Optional[str] = None,
+    ) -> LLMResponse:
         """
         Synchronous LLM invocation implementing LLMInterface.
 
         Args:
-            input: The full prompt string (system + user combined by neo4j-graphrag)
+            input: The full prompt string
+            message_history: Optional prior messages for multi-turn context
+            system_instruction: Optional system message override
 
         Returns:
             LLMResponse with generated content
@@ -33,11 +41,31 @@ class GroqLLM(LLMInterface):
             temperature = self.model_params.get("temperature", 0)
             max_tokens = self.model_params.get("max_tokens", 4096)
 
+            messages = []
+
+            # Add system instruction if provided
+            if system_instruction:
+                messages.append({"role": "system", "content": system_instruction})
+
+            # Add message history if provided
+            if message_history:
+                if hasattr(message_history, 'messages'):
+                    # MessageHistory object
+                    history_list = message_history.messages
+                else:
+                    history_list = message_history
+                for msg in history_list:
+                    if isinstance(msg, dict):
+                        messages.append(msg)
+                    else:
+                        messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
+
+            # Add the current input
+            messages.append({"role": "user", "content": input})
+
             response = self.client.chat.completions.create(
                 model=self.model_name,
-                messages=[
-                    {"role": "user", "content": input}
-                ],
+                messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens
             )
@@ -47,9 +75,14 @@ class GroqLLM(LLMInterface):
             logger.error(f"Groq API error: {e}")
             raise
 
-    async def ainvoke(self, input: str) -> LLMResponse:
+    async def ainvoke(
+        self,
+        input: str,
+        message_history: Optional[Union[List[LLMMessage], "MessageHistory"]] = None,
+        system_instruction: Optional[str] = None,
+    ) -> LLMResponse:
         """Async invocation (delegates to sync for Groq SDK)"""
-        return self.invoke(input)
+        return self.invoke(input, message_history=message_history, system_instruction=system_instruction)
 
 
 # ──── Singletons ────────────────────────────────────────
