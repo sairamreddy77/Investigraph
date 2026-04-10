@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     # Groq API
     GROQ_API_KEY: str
 
+    # GraphRAG Configuration
+    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    VECTOR_DIMENSIONS: int = 384
+    VECTOR_INDEX_NAME: str = "pole_vector_index"
+    GRAPHRAG_TOP_K: int = 5
+
     # Server Config
     BACKEND_PORT: int = 8000
     CORS_ORIGINS: str = "http://localhost:5173"

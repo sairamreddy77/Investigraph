@@ -1,22 +1,19 @@
-# Deployment Guide - Investigraph POLE NL-to-Cypher QA System
+# Deployment Guide - Investigraph POLE GraphRAG System
 
-> Comprehensive deployment instructions for local development, Docker, and cloud platforms.
+> Comprehensive deployment instructions for local development, Docker, and cloud platforms using the modern Neo4j GraphRAG architecture.
 
 ---
 
 ## Table of Contents
 
 1. [Local Development Setup](#local-development-setup)
-2. [Docker Deployment](#docker-deployment)
-3. [Cloud Platform Deployment](#cloud-platform-deployment)
-   - [Heroku](#heroku)
-   - [Render](#render)
-   - [Railway](#railway)
-   - [Vercel (Frontend) + Railway (Backend)](#vercel-frontend--railway-backend)
-4. [Environment Variables](#environment-variables)
-5. [Production Best Practices](#production-best-practices)
-6. [Monitoring and Logging](#monitoring-and-logging)
-7. [Troubleshooting](#troubleshooting)
+2. [Embedding Migration (CRITICAL)](#embedding-migration-critical)
+3. [Docker Deployment](#docker-deployment)
+4. [Cloud Platform Deployment](#cloud-platform-deployment)
+5. [Environment Variables](#environment-variables)
+6. [Production Best Practices](#production-best-practices)
+7. [Monitoring and Logging](#monitoring-and-logging)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -26,7 +23,8 @@
 
 - Python 3.10 or higher
 - Node.js 18 or higher
-- Neo4j Database (local or cloud)
+- Neo4j Database 5.23+ (local or cloud)
+- Groq API Key (recommended for performance)
 - Git
 
 ### Backend Setup
@@ -52,14 +50,138 @@ cp .env.example .env
 
 # Edit .env with your credentials
 # Required: NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
-# Required: At least one LLM API key (GROQ_API_KEY, OPENAI_API_KEY, etc.)
-
-# Run development server
-uvicorn app.main:app --reload --port 8000
-
-# Test backend is running
-curl http://localhost:8000/api/health
+# Required: GROQ_API_KEY (or other supported LLM provider)
 ```
+
+---
+
+## Embedding Migration (CRITICAL)
+
+Before the system can use semantic search (Vector and VectorCypher retrievers), you must generate embeddings for the crime records and initialize the vector index.
+
+```bash
+cd backend
+python -m scripts.create_embeddings
+```
+
+**What this script does:**
+1. Loads the `all-MiniLM-L6-v2` SentenceTransformer model.
+2. Creates a vector index named `crime_vector_index` on `Crime(embedding)` with 384 dimensions and cosine similarity.
+3. Processes all `Crime` nodes in batches, generating embeddings from their properties and storing them back in Neo4j.
+
+---
+
+## Running the Application
+
+### Start Backend
+
+```bash
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+
+### Start Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+# Frontend will be available at http://localhost:3000
+```
+
+### Verify Installation
+
+1. Open `http://localhost:3000` in browser.
+2. Try a structured question: "How many crimes are recorded?"
+3. Try a semantic question: "Tell me about theft incidents."
+4. Verify:
+   - Intelligent routing identifies the correct retriever.
+   - Grounded answers appear with source metadata.
+   - Graph visualization renders the relationships.
+
+---
+
+## Docker Deployment
+
+### Prerequisites
+
+- Docker 20.10+
+- Docker Compose 2.0+
+
+### Docker Compose (Recommended)
+
+The `docker-compose.yml` file orchestrates the backend and frontend.
+
+```bash
+# Build and start all services
+docker-compose up -d
+
+# Run the embedding migration inside the container
+docker-compose exec backend python -m scripts.create_embeddings
+
+# View logs
+docker-compose logs -f
+```
+
+**Access the application:**
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:8000`
+
+---
+
+## Cloud Platform Deployment
+
+### Render / Railway / Heroku
+
+1. **Neo4j**: Use [Neo4j Aura](https://neo4j.com/cloud/aura/) (Free or Professional).
+2. **Backend**:
+   - Runtime: Python 3.10+
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Post-Deployment**: Run the `create_embeddings` script via the platform's console/CLI.
+3. **Frontend**:
+   - Runtime: Node.js 18+
+   - Build Command: `npm install && npm run build`
+   - Environment: Set `VITE_API_BASE_URL` to your backend URL.
+
+---
+
+## Environment Variables
+
+### Backend (`.env`)
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `NEO4J_URI` | Yes | Neo4j connection URI | `neo4j+s://xxx.databases.neo4j.io` |
+| `NEO4J_USERNAME` | Yes | Neo4j username | `neo4j` |
+| `NEO4J_PASSWORD` | Yes | Neo4j password | `password` |
+| `NEO4J_DATABASE` | No | Database name | `neo4j` |
+| `GROQ_API_KEY` | Yes* | Groq API key | `gsk_xxx` |
+| `LOG_LEVEL` | No | INFO, DEBUG, etc. | `INFO` |
+
+*The system is optimized for Groq (Llama-3.3-70b).
+
+---
+
+## Production Best Practices
+
+1. **Embeddings**: Ensure the vector index is created and populated before enabling public access.
+2. **LLM Choice**: Groq Llama-3.3-70b provides the best balance of speed and reasoning for GraphRAG.
+3. **Neo4j Indexing**: Create standard indexes for high-traffic properties (`Person.name`, `Crime.type`, etc.).
+4. **Security**: Use HTTPS and restrict CORS origins in production.
+
+---
+
+## Troubleshooting
+
+### "Vector index not found"
+Run the `python -m scripts.create_embeddings` script. The system requires `crime_vector_index` to exist for semantic queries.
+
+### "Empty results"
+Check if the routing heuristic is sending the question to the wrong retriever. Simple counts should be "Structured", while vague descriptions should be "Semantic".
+
+### "Neo4j connection timeout"
+Ensure your IP is allowlisted in Neo4j Aura if using a cloud database.
 
 ### Frontend Setup
 

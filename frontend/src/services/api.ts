@@ -1,4 +1,4 @@
-// API Service for POLE NL-to-Cypher QA System
+// API Service for Investigraph GraphRAG System
 
 // Type Definitions
 export interface QueryRequest {
@@ -8,7 +8,7 @@ export interface QueryRequest {
 export interface QueryResponse {
   question: string;
   answer: string;
-  cypher: string;
+  cypher: string | null;
   results: Array<Record<string, any>>;
   graph_data?: {
     nodes: Array<{ id: string; label: string; properties: Record<string, any> }>;
@@ -17,6 +17,9 @@ export interface QueryResponse {
   attempts: number;
   execution_time_ms?: number;
   error?: string;
+  // GraphRAG enrichment
+  retriever_used?: string;
+  retriever_context?: string[];
 }
 
 export interface SchemaResponse {

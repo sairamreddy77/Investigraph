@@ -1,106 +1,52 @@
-# Investigraph - POLE NL-to-Cypher QA System
+# Investigraph - POLE GraphRAG Investigation System
 
-> A production-ready natural language to Cypher query system for crime investigation knowledge graphs.
+> A production-ready GraphRAG-powered natural language questioning system for crime investigation knowledge graphs.
 
-Ask questions in plain English, get intelligent answers backed by Neo4j graph database queries.
+Ask questions in plain English, get intelligent answers backed by Neo4j's GraphRAG architecture and multi-strategy retrieval.
 
 ---
 
 ## Overview
 
-**Investigraph** is an intelligent question-answering system built for law enforcement and crime investigators. It translates natural language questions into Cypher queries, executes them against a POLE (Person, Object, Location, Event) knowledge graph in Neo4j, and returns clear, actionable answers with interactive graph visualizations.
+**Investigraph** is an advanced investigation intelligence system built for law enforcement. It leverages a Neo4j GraphRAG-powered pipeline to transform natural language questions into deep insights by combining structured graph queries with semantic vector search.
 
-### What is POLE?
-
-POLE is a data model used in law enforcement for organizing investigation intelligence:
-- **Person**: Individuals involved in investigations
-- **Object**: Evidence items, vehicles, weapons
-- **Location**: Crime scenes, addresses, geographic areas
-- **Event**: Criminal incidents, phone calls, interactions
+The system uses the POLE (Person, Object, Location, Event) data model, allowing investigators to explore complex relationships across criminal networks, geographic hotspots, and communication patterns.
 
 ### Key Features
 
-- **Natural Language Interface**: Ask questions like "Who is involved in drug crimes in area WN?"
-- **Intelligent Query Generation**: Uses LLM with schema context and 24 curated examples
-- **Self-Healing Retry Logic**: Automatically fixes syntax errors and reformulates failed queries (up to 3 attempts)
-- **Multi-Provider LLM Support**: Works with Groq (LLaMA 3.3), OpenAI (GPT-4o), Anthropic (Claude), Google (Gemini)
-- **Interactive Graph Visualization**: Explore relationships visually with node/edge rendering
-- **Real-Time Results**: See generated Cypher queries, execution metadata, and natural language answers
-- **Comprehensive Testing**: Unit tests, integration tests, manual test checklists
+- **GraphRAG Architecture**: Combines graph traversal with vector search for context-grounded answer generation.
+- **Intelligent Query Routing**: Heuristic-based classification that selects the best retrieval strategy for each question.
+- **Triple Retrieval Strategy**:
+  - **Text2Cypher**: Precision structured queries with self-healing retry logic.
+  - **Vector Search**: Semantic lookup using SentenceTransformer embeddings.
+  - **VectorCypher**: Hybrid search that enriches semantic results with graph-traversal context.
+- **Groq-Powered Intelligence**: Uses Llama-3.3-70b via Groq for high-speed, high-accuracy reasoning.
+- **Interactive Visualization**: Real-time graph rendering showing entities and their relationships.
+- **Retriever Metadata**: Transparent feedback on which retriever was used and the context gathered.
 
 ---
 
-## Architecture
+## Technology Stack
 
-### System Design
+- **Backend**: FastAPI, Python, `neo4j-graphrag` library
+- **Graph Database**: Neo4j 5.23+
+- **LLM**: Groq Llama-3.3-70b-versatile
+- **Embeddings**: SentenceTransformers `all-MiniLM-L6-v2` (384 dimensions)
+- **Frontend**: React, TypeScript, Vite, vis-network
 
-```
-┌─────────────────┐
-│  User Question  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────────┐
-│  Frontend (React + TypeScript + Vite)   │
-│  - Query input & example questions      │
-│  - Results display & graph viz          │
-│  - Real-time feedback                   │
-└────────┬────────────────────────────────┘
-         │ HTTP (POST /api/ask)
-         ▼
-┌─────────────────────────────────────────┐
-│  Backend (FastAPI + Python)             │
-│                                         │
-│  ┌─────────────────────────────────┐   │
-│  │  1. Cypher Generator (LLM)      │   │
-│  │     - Schema introspection      │   │
-│  │     - 24 few-shot examples      │   │
-│  │     - Error context (on retry)  │   │
-│  └──────────────┬──────────────────┘   │
-│                 ▼                       │
-│  ┌─────────────────────────────────┐   │
-│  │  2. Query Executor              │   │
-│  │     - Execute on Neo4j          │   │
-│  │     - Retry on syntax error     │   │
-│  │     - Retry on empty results    │   │
-│  │     - Extract graph data        │   │
-│  └──────────────┬──────────────────┘   │
-│                 ▼                       │
-│  ┌─────────────────────────────────┐   │
-│  │  3. Answer Generator (LLM)      │   │
-│  │     - Natural language answer   │   │
-│  └─────────────────────────────────┘   │
-└────────┬────────────────────────────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Neo4j Database │
-│  (POLE Schema)  │
-└─────────────────┘
-```
+---
 
-### Technology Stack
+## System Comparison
 
-**Frontend:**
-- React 18 with TypeScript
-- Vite (build tool)
-- vis-network (graph visualization)
-- Modern CSS with dark/light mode support
-
-**Backend:**
-- FastAPI (Python web framework)
-- LangChain (LLM orchestration)
-- Neo4j Python Driver
-- Pydantic (data validation)
-
-**Database:**
-- Neo4j Graph Database (POLE schema with 11 node types, 17 relationships)
-
-**LLM Providers:**
-- Groq (LLaMA 3.3 70B) - Free tier, fastest
-- OpenAI (GPT-4o) - Best accuracy
-- Anthropic (Claude Sonnet 4) - Best quality
-- Google (Gemini 2.0 Flash) - Best value
+| Feature | Old System (Legacy) | New Investigraph (GraphRAG) |
+|---|---|---|
+| **Pipeline** | Simple NL-to-Cypher | Multi-Strategy GraphRAG |
+| **Retrieval** | Single-hop Cypher | Text2Cypher, Vector, VectorCypher |
+| **Context** | Raw DB results | Multi-hop graph-enriched context |
+| **Error Handling** | Basic retries | Self-healing + Fallback retrievers |
+| **AI Framework** | LangChain (Legacy) | Native `neo4j-graphrag` Orchestration |
+| **Intelligence** | GPT-3.5/Basic Llama | Groq Llama-3.3-70b-versatile |
+| **Visualization** | Basic node list | Metadata-driven relationship graph |
 
 ---
 
@@ -110,17 +56,10 @@ POLE is a data model used in law enforcement for organizing investigation intell
 
 - Python 3.10+
 - Node.js 18+
-- Neo4j Database (local or cloud)
-- API key for at least one LLM provider (Groq/OpenAI/Anthropic/Google)
+- Neo4j Database (5.23+)
+- Groq API Key
 
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/yourusername/investigraph.git
-cd investigraph
-```
-
-### 2. Backend Setup
+### 1. Backend Setup
 
 ```bash
 cd backend
@@ -134,246 +73,96 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Edit .env with your Neo4j and LLM credentials
+# Edit .env with your Neo4j and Groq credentials
+```
 
-# Run backend
+### 2. Embedding Migration (CRITICAL)
+
+Before running the system, you must generate embeddings for the Crime records and create the vector index:
+
+```bash
+cd backend
+python -m scripts.create_embeddings
+```
+
+This script will:
+1. Initialize the `all-MiniLM-L6-v2` model.
+2. Create `crime_vector_index` on `Crime(embedding)`.
+3. Process all Crime nodes in batches to generate 384-dimension vectors.
+
+### 3. Run Application
+
+**Start Backend:**
+```bash
+cd backend
 uvicorn app.main:app --reload --port 8000
 ```
 
-Backend will be available at `http://localhost:8000`
-
-### 3. Frontend Setup
-
+**Start Frontend:**
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
 ```
 
-Frontend will be available at `http://localhost:3000`
+---
 
-### 4. Verify Installation
+## Architecture
 
-Open `http://localhost:3000` in your browser and try an example question:
-- "How many crimes are recorded?"
-- "Find people involved in drug crimes"
-- "Which area has the most crimes?"
+```mermaid
+graph TD
+    User[Investigator] --> API[FastAPI Endpoints]
+    API --> Router[Question Classifier]
+    
+    Router -->|Structured| T2C[Text2Cypher Retriever]
+    Router -->|Lookup| VR[Vector Retriever]
+    Router -->|Semantic + Context| VCR[VectorCypher Retriever]
+    
+    T2C --> Fallback{Results Found?}
+    VR --> Fallback
+    VCR --> Fallback
+    
+    Fallback -->|No| VCR
+    Fallback -->|Yes| RAG[GraphRAG Generator]
+    
+    RAG --> Answer[Grounded Answer + Metadata]
+    Answer --> UI[Interactive UI + Graph Viz]
+```
 
 ---
 
-## Setup Instructions
+## Example Questions
 
-### Backend Configuration
-
-Create `backend/.env`:
-
-```env
-# Neo4j Connection
-NEO4J_URI=neo4j+s://xxxxx.databases.neo4j.io
-NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=your_password
-NEO4J_DATABASE=pole
-
-# LLM Provider (choose at least one)
-GROQ_API_KEY=gsk_xxxxx              # Groq (free tier)
-# OPENAI_API_KEY=sk-xxxxx           # OpenAI (paid)
-# ANTHROPIC_API_KEY=sk-ant-xxxxx    # Anthropic (paid)
-# GOOGLE_API_KEY=AIzaSyxxxxx        # Google (paid)
-
-# Optional
-LOG_LEVEL=INFO
-```
-
-### Neo4j Database Setup
-
-Your Neo4j database should have the POLE schema:
-
-**Node Labels (11):**
-- Person, Crime, Location, Vehicle, Object, Officer, Phone, PhoneCall, Email, PostCode, AREA
-
-**Relationships (17):**
-- PARTY_TO, CURRENT_ADDRESS, HAS_PHONE, HAS_EMAIL, KNOWS, KNOWS_LW, KNOWS_PHONE, FAMILY_REL
-- OCCURRED_AT, INVESTIGATED_BY, INVOLVED_IN, CALLER, CALLED, HAS_POSTCODE, LOCATION_IN_AREA, POSTCODE_IN_AREA
-
-See `implementation_plan.md` for complete schema details.
-
-### LLM Provider Setup
-
-**Groq (Recommended for Development):**
-1. Sign up at https://console.groq.com/
-2. Get free API key (generous rate limits)
-3. Add to `.env`: `GROQ_API_KEY=gsk_xxxxx`
-
-**OpenAI:**
-1. Sign up at https://platform.openai.com/
-2. Add payment method
-3. Add to `.env`: `OPENAI_API_KEY=sk-xxxxx`
-
-**Anthropic:**
-1. Sign up at https://console.anthropic.com/
-2. Add payment method
-3. Add to `.env`: `ANTHROPIC_API_KEY=sk-ant-xxxxx`
-
-**Google Gemini:**
-1. Get API key from https://ai.google.dev/
-2. Add to `.env`: `GOOGLE_API_KEY=AIzaSyxxxxx`
-
----
-
-## Usage Examples
-
-### Example Questions
-
-**Basic Queries:**
-```
-- "How many crimes are recorded?"
-- "What are the different types of crimes?"
-- "Show all crimes related to drugs"
-```
-
-**Relationship Queries:**
-```
-- "Who are the people involved in crimes?"
-- "Which vehicles are linked to crimes?"
-- "Where do crimes occur?"
-```
-
-**Multi-Hop Queries:**
-```
-- "Find people involved in crimes in each area"
-- "Find people involved in drug crimes in area WN"
-- "Find vehicles used in crimes in specific areas"
-```
-
-**Network Queries:**
-```
-- "Find people who know criminals"
-- "Find family members of people involved in crimes"
-- "Find phone numbers of people involved in crimes"
-```
-
-**Aggregation Queries:**
-```
-- "Which area has the highest number of crimes?"
-- "Which officer investigates the most crimes?"
-- "Average duration of phone calls"
-```
-
-### Using the API Directly
-
-```bash
-# Submit a question
-curl -X POST http://localhost:8000/api/ask \
-  -H "Content-Type: application/json" \
-  -d '{"question": "How many crimes are recorded?"}'
-
-# Check health
-curl http://localhost:8000/api/health
-
-# View schema
-curl http://localhost:8000/api/schema
-
-# View examples
-curl http://localhost:8000/api/examples
-```
+- **Structured**: "How many crimes happened in area WN?"
+- **Semantic**: "Tell me about incidents involving theft or robbery"
+- **Hybrid**: "Show me people connected to drug crimes in the last month"
+- **Network**: "Find family members of people involved in drug offences"
 
 ---
 
 ## Features in Detail
 
-### 1. Intelligent Cypher Generation
+### 1. Intelligent Query Routing
 
-The system uses an LLM with:
-- **Full schema context**: All 11 node types and 17 relationships
-- **24 curated examples**: Covering basic, relationship, multi-hop, and aggregation queries
-- **Property value lists**: Known categorical values (crime types, officer ranks, etc.)
+The system classifies questions into three categories:
+- **Structured**: Questions involving counts, filters, or complex network hops (uses Text2Cypher).
+- **Lookup**: Simple keyword or entity searches (uses Vector search).
+- **Semantic**: Exploratory questions requiring deep context (uses VectorCypher).
 
-This provides context for accurate query generation without requiring narrow intent parsing.
+### 2. Multi-Strategy Retrieval
 
-### 2. Self-Healing Retry Logic
+- **Text2Cypher**: Translates natural language to Cypher with a self-healing retry mechanism that handles syntax errors and empty results.
+- **Vector Retriever**: Performs semantic search on high-dimensional embeddings of crime records.
+- **VectorCypher Retriever**: Combines semantic search with a subsequent graph traversal to gather neighborhood context (e.g., people, officers, and locations connected to a crime).
 
-When a query fails, the system:
-1. **On Syntax Error**: Feeds the error back to the LLM with the failed query for self-correction
-2. **On Empty Results**: Asks the LLM to relax filters or try alternate traversal paths
-3. **Max 3 Attempts**: Returns gracefully with helpful message if all retries fail
+### 3. GraphRAG Answer Generation
 
-### 3. Graph Visualization
-
-Results include structured graph data (nodes and edges) that the frontend renders interactively:
-- Color-coded nodes by type (Person, Crime, Location, etc.)
-- Interactive zoom, pan, and selection
-- Relationship labels on edges
-- Node property inspection on click
-
-### 4. Natural Language Answers
-
-The system generates human-readable answers:
-- "Found 42 crimes in the database"
-- "The area with the highest crime rate is WN with 45 incidents"
-- "John Smith and Sarah Jones are involved in drug crimes in area WN"
-
----
-
-## Testing
-
-### Backend Tests
-
-```bash
-cd backend
-
-# Run all tests
-pytest tests/ -v
-
-# Run integration tests
-pytest tests/test_integration.py -v
-
-# Run with coverage
-pytest tests/ --cov=app --cov=core --cov-report=html
-```
-
-### Manual Testing
-
-See `backend/tests/manual_test_checklist.md` for comprehensive manual test scenarios (55+ tests).
-
-### Test Coverage
-
-- Unit tests for each component (schema introspector, cypher generator, query executor, etc.)
-- Integration tests for full pipeline with mocked Neo4j and LLM
-- Manual test checklist covering:
-  - Basic queries, relationships, multi-hop, aggregations
-  - Error handling and retry logic
-  - UI/UX verification
-  - Cross-browser compatibility
-  - Performance testing
-
----
-
-## Deployment
-
-See `DEPLOYMENT.md` for detailed deployment instructions including:
-- Docker containerization
-- Cloud platform deployment (Heroku, Render, Railway, Vercel)
-- Environment configuration
-- Production best practices
-
-### Quick Docker Deployment
-
-```bash
-# Build and run with docker-compose
-docker-compose up -d
-
-# Access application
-# Frontend: http://localhost:3000
-# Backend: http://localhost:8000
-```
+Answers are synthesized by the Groq Llama-3.3-70b model, grounded strictly in the context retrieved from the graph. This minimizes hallucinations and ensures that every fact in the response is backed by database records.
 
 ---
 
 ## Project Structure
+
 
 ```
 investigraph/

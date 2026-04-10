@@ -18,7 +18,7 @@ from app.models import (
     Example,
     GraphData
 )
-from core.pipeline import get_pipeline
+from core.graphrag_pipeline import get_graphrag_pipeline
 from core.schema_introspector import get_schema_introspector
 from core.few_shot_loader import get_few_shot_loader
 from core.case_study_loader import get_case_study_loader
@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     Handles startup and shutdown events
     """
     # Startup
-    logger.info("Starting POLE NL-to-Cypher API...")
+    logger.info("Starting Investigraph GraphRAG API...")
 
     try:
         # Initialize Neo4j connection
@@ -48,11 +48,11 @@ async def lifespan(app: FastAPI):
         neo4j_client = get_neo4j_client()
         logger.info("Neo4j connection established")
 
-        # Initialize pipeline (caches schema and examples)
-        logger.info("Initializing query pipeline...")
-        pipeline = get_pipeline()
+        # Initialize GraphRAG pipeline
+        logger.info("Initializing GraphRAG pipeline...")
+        pipeline = get_graphrag_pipeline()
         pipeline.initialize()
-        logger.info("Pipeline initialization complete")
+        logger.info("GraphRAG pipeline initialization complete")
 
         # Pre-load case studies
         logger.info("Loading case studies...")
@@ -79,17 +79,19 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down API...")
     try:
+        pipeline = get_graphrag_pipeline()
+        pipeline.close()
         neo4j_client.close()
-        logger.info("Neo4j connection closed")
+        logger.info("Connections closed")
     except Exception as e:
         logger.error(f"Error during shutdown: {e}", exc_info=True)
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="POLE NL-to-Cypher API",
-    description="Natural language query API for POLE crime investigation knowledge graph",
-    version="1.0.0",
+    title="Investigraph GraphRAG API",
+    description="GraphRAG-powered query API for POLE crime investigation knowledge graph",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -196,7 +198,7 @@ async def health_check():
             logger.error(f"Neo4j health check failed: {e}")
 
         # Check pipeline initialization
-        pipeline = get_pipeline()
+        pipeline = get_graphrag_pipeline()
         pipeline_initialized = pipeline._initialized
 
         # Check LLM availability (assume available if pipeline initialized)
@@ -254,13 +256,13 @@ async def query(request: QueryRequest):
         logger.info(f"━━━ QUERY ENDPOINT START ━━━")
         logger.info(f"Question received: {request.question}")
 
-        # Get pipeline
-        logger.info("Getting pipeline instance...")
-        pipeline = get_pipeline()
+        # Get GraphRAG pipeline
+        logger.info("Getting GraphRAG pipeline instance...")
+        pipeline = get_graphrag_pipeline()
         logger.info(f"Pipeline initialized: {pipeline._initialized}")
 
-        # Run pipeline
-        logger.info("Running pipeline...")
+        # Run GraphRAG pipeline
+        logger.info("Running GraphRAG pipeline...")
         result = pipeline.run(request.question)
         logger.info(f"Pipeline result keys: {result.keys()}")
 
@@ -269,12 +271,14 @@ async def query(request: QueryRequest):
         response = QueryResponse(
             question=result["question"],
             answer=result["answer"],
-            cypher=result["cypher"],
+            cypher=result.get("cypher", ""),
             results=result["results"],
             graph_data=GraphData(**result["graph_data"]),
             attempts=result["attempts"],
             execution_time_ms=result["execution_time_ms"],
-            error=result.get("error")
+            error=result.get("error"),
+            retriever_used=result.get("retriever_used"),
+            retriever_context=result.get("retriever_context", []),
         )
 
         logger.info(f"━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in {result['execution_time_ms']}ms")

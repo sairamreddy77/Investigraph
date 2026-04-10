@@ -35,21 +35,27 @@ class GraphData(BaseModel):
 
 
 class QueryResponse(BaseModel):
-    """Response model for NL query endpoint"""
+    """Response model for NL query endpoint (GraphRAG enriched)"""
     question: str = Field(..., description="Original question")
     answer: str = Field(..., description="Natural language answer")
-    cypher: str = Field(..., description="Generated Cypher query")
+    cypher: Optional[str] = Field("", description="Generated Cypher query (if Text2Cypher was used)")
     results: List[Dict[str, Any]] = Field(
         default_factory=list,
-        description="Raw query results from Neo4j"
+        description="Raw query results or context items"
     )
     graph_data: GraphData = Field(
         default_factory=GraphData,
         description="Graph data for visualization"
     )
-    attempts: int = Field(..., description="Number of query attempts")
+    attempts: int = Field(1, description="Number of query attempts")
     execution_time_ms: int = Field(..., description="Total execution time in milliseconds")
     error: Optional[str] = Field(None, description="Error message if query failed")
+    # GraphRAG enrichment fields
+    retriever_used: Optional[str] = Field(None, description="Which retriever strategy was selected")
+    retriever_context: List[str] = Field(
+        default_factory=list,
+        description="Source context chunks used to generate the answer"
+    )
 
 
 class HealthResponse(BaseModel):
