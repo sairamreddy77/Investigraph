@@ -2,7 +2,7 @@ examples:
   - question: "Which areas have the highest number of drug-related crimes?"
     cypher: |
       MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(c.type) CONTAINS 'drug'
       RETURN a.areaCode AS area, count(c) AS crime_count
       ORDER BY crime_count DESC
@@ -10,7 +10,7 @@ examples:
   - question: "Find all drug-related crimes in BL6 area that are under investigation. Include persons, evidence, and officers."
     cypher: |
       MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(c.type) CONTAINS 'drug'
         AND toLower(a.areaCode) CONTAINS 'bl6'
         AND toLower(c.last_outcome) CONTAINS 'under investigation'
@@ -181,14 +181,14 @@ examples:
     cypher: |
       MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       RETURN p.name, c.type, a.areaCode
 
   - question: "Find people involved in drug crimes in area WN"
     cypher: |
       MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(c.type) CONTAINS 'drug'
         AND toLower(a.areaCode) CONTAINS 'wn'
       RETURN p.name, c.type, a.areaCode
@@ -197,7 +197,7 @@ examples:
     cypher: |
       MATCH (v:Vehicle)-[:INVOLVED_IN]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       RETURN v.make, v.model, a.areaCode, c.type
 
   - question: "Find officers investigating drug crimes"
@@ -250,7 +250,7 @@ examples:
   - question: "Which area has the highest number of crimes?"
     cypher: |
       MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       RETURN a.areaCode, count(c) AS crime_count
       ORDER BY crime_count DESC LIMIT 1
 
@@ -270,7 +270,7 @@ examples:
     cypher: |
       MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(a.areaCode) CONTAINS 'bl1'
       WITH p, count(DISTINCT c) AS crime_count
       WHERE crime_count > 1
@@ -281,7 +281,7 @@ examples:
     cypher: |
       MATCH (p1:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(a.areaCode) CONTAINS 'bl1'
       WITH p1, count(DISTINCT c) AS crime_count
       WHERE crime_count > 1
@@ -313,7 +313,7 @@ examples:
     cypher: |
       MATCH (p1:Person)-[:PARTY_TO]->(c1:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(a.areaCode) CONTAINS 'wn'
       WITH p1, count(DISTINCT c1) AS p1_crimes
       MATCH (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE]->(p2:Person)
@@ -325,7 +325,7 @@ examples:
     cypher: |
       MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WITH a.areaCode AS area, p, count(DISTINCT c) AS crime_count
       WHERE crime_count > 1
       WITH area, collect({name: p.name, crimes: crime_count}) AS offenders

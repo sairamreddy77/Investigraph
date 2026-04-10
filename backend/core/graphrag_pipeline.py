@@ -195,14 +195,17 @@ class GraphRAGPipeline:
         Classify question to select the best retriever.
 
         Heuristic-based routing:
-        - Structured patterns (count, which, how many, list) → text2cypher
-        - Semantic/exploratory (tell me about, describe, explain) → vector_cypher
-        - Simple lookup (find, search) → vector
+        - Structured patterns → text2cypher (filters, aggregations, specific entities)
+        - Semantic/exploratory → vector_cypher (open-ended, descriptive)
+        - Simple lookup → vector (short keyword queries)
+
+        Priority order matters: structured checks run first so filter-heavy
+        queries aren't accidentally caught by the semantic or default bucket.
         """
         q = question.lower().strip()
 
-        # Structured query patterns → Text2Cypher
-        structured_patterns = [
+        # ── 1. Explicit structured patterns → Text2Cypher ──
+        structured_keywords = [
             "how many", "count", "total",
             "which area", "which officer", "which person",
             "top ", "most ", "least ", "average",
@@ -211,11 +214,62 @@ class GraphRAGPipeline:
             "calls between", "phone", "communication",
             "investigated by", "party to",
         ]
-        for pattern in structured_patterns:
+        for pattern in structured_keywords:
             if pattern in q:
                 return "text2cypher"
 
-        # Semantic/exploratory patterns → VectorCypher (richest context)
+        # ── 2. Filter-heavy queries → Text2Cypher ──
+        # Queries that specify area codes, outcome filters, crime types with
+        # specific criteria, or request multiple entity types are best served
+        # by precise Cypher rather than semantic similarity.
+
+        # Area code references (e.g. "in BL6", "area WN3", "in area M23")
+        import re
+        area_code_pattern = re.compile(
+            r'\b(?:in\s+)?(?:area\s+)?[A-Z]{1,3}\d{1,2}\b', re.IGNORECASE
+        )
+        has_area_filter = bool(area_code_pattern.search(question))
+
+        # Outcome / status filters
+        outcome_keywords = [
+            "under investigation", "no suspect", "charged", "cautioned",
+            "awaiting", "unable to prosecute", "court", "investigation complete",
+            "sentenced", "suspended", "fined",
+        ]
+        has_outcome_filter = any(kw in q for kw in outcome_keywords)
+
+        # Multi-entity requests (people + evidence + officers, etc.)
+        entity_keywords = [
+            "people involved", "persons involved", "evidence",
+            "officers handling", "officers investigating",
+            "include the people", "include the officers", "include the evidence",
+            "people", "officers", "vehicles", "objects",
+        ]
+        entity_hits = sum(1 for kw in entity_keywords if kw in q)
+        has_multi_entity = entity_hits >= 2
+
+        # "Find all ... in/with" + criteria = structured
+        has_find_all = q.startswith("find all") or q.startswith("list all") or q.startswith("show all")
+
+        # Crime type + area/outcome filter combo
+        crime_type_keywords = [
+            "drug", "theft", "burglary", "robbery", "assault", "violence",
+            "criminal damage", "shoplifting", "anti-social", "fraud",
+        ]
+        has_crime_type = any(kw in q for kw in crime_type_keywords)
+
+        # Route to text2cypher if filter signals are strong enough
+        filter_score = sum([
+            has_area_filter,
+            has_outcome_filter,
+            has_multi_entity,
+            has_find_all,
+            has_crime_type and (has_area_filter or has_outcome_filter),
+        ])
+        if filter_score >= 2:
+            return "text2cypher"
+
+        # ── 3. Semantic/exploratory patterns → VectorCypher ──
         semantic_patterns = [
             "tell me about", "describe", "explain", "summarize",
             "what do you know", "overview", "insight",
@@ -226,15 +280,15 @@ class GraphRAGPipeline:
             if pattern in q:
                 return "vector_cypher"
 
-        # Questions starting with who/what/where/when → Text2Cypher
+        # ── 4. Questions starting with who/what/where/when → Text2Cypher ──
         if q.startswith(("who ", "where ", "when ")):
             return "text2cypher"
 
-        # Short queries or keyword-like → vector search
+        # ── 5. Short queries or keyword-like → vector search ──
         if len(q.split()) <= 4:
             return "vector"
 
-        # Default to vector_cypher for best context
+        # ── 6. Default to vector_cypher for best context ──
         return "vector_cypher"
 
     def _execute_retriever(

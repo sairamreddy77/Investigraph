@@ -232,3 +232,39 @@ Batches: 100%|██████████████████████
 2026-04-11 00:53:55,696 - app.main - INFO - ━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in 2204ms
 2026-04-11 00:53:55,697 - app.main - INFO - ━━━ RESPONSE ━━━ POST /api/query - Status: 200 - Duration: 2212ms       
 INFO:     127.0.0.1:61252 - "POST /api/query HTTP/1.1" 200 OK
+
+
+
+All code changes are done. The remaining two tasks need your Neo4j instance. Here's what to do:
+
+### Step 1: Verify the Cypher directly in Neo4j Browser
+Run this on your Neo4j laptop (with the `:Area` fix applied):
+```cypher
+MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:Area)
+WHERE toLower(c.type) CONTAINS 'drug' 
+  AND toLower(a.areaCode) CONTAINS 'bl6' 
+  AND toLower(c.last_outcome) CONTAINS 'under investigation'
+OPTIONAL MATCH (p:Person)-[:PARTY_TO]->(c)
+OPTIONAL MATCH (c)-[:INVESTIGATED_BY]->(o:Officer)
+OPTIONAL MATCH (obj:Object)-[:INVOLVED_IN]->(c)
+RETURN c.id AS crime_id, c.type AS crime_type, c.last_outcome AS status,
+       p.name AS person, obj.description AS evidence, o.name AS officer
+LIMIT 50
+```
+This confirms data exists. If it returns 0 rows, the issue is data (no BL6 drug crimes under investigation), not code.
+
+### Step 2: Restart backend and re-test
+```bash
+# Kill existing backend, then:
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
+Then ask the same question via the UI:
+> *"Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases."*
+
+**What to check in logs:**
+- Should say `Selected retriever: text2cypher` (not `vector_cypher`)
+- Should show `Text2Cypher attempt 1/3`
+- Generated Cypher should use `(a:Area)` not `(a:AREA)`
+
+Paste me the results and I'll verify.
