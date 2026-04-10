@@ -1,4 +1,126 @@
 examples:
+  - question: "Which areas have the highest number of drug-related crimes?"
+    cypher: |
+      MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WHERE toLower(c.type) CONTAINS 'drug'
+      RETURN a.areaCode AS area, count(c) AS crime_count
+      ORDER BY crime_count DESC
+
+  - question: "Find all drug-related crimes in BL6 area that are under investigation. Include persons, evidence, and officers."
+    cypher: |
+      MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
+            -[:LOCATION_IN_AREA]->(a:AREA)
+      WHERE toLower(c.type) CONTAINS 'drug'
+        AND toLower(a.areaCode) CONTAINS 'bl6'
+        AND toLower(c.last_outcome) CONTAINS 'under investigation'
+
+      OPTIONAL MATCH (p:Person)-[:PARTY_TO]->(c)
+      OPTIONAL MATCH (c)-[:INVESTIGATED_BY]->(o:Officer)
+      OPTIONAL MATCH (obj:Object)-[:INVOLVED_IN]->(c)
+
+      RETURN c.id AS crime_id,
+             c.type AS crime_type,
+             c.last_outcome AS status,
+             p.name AS person_involved,
+             obj.description AS evidence,
+             o.name AS investigating_officer
+
+  - question: "What evidence is associated with the crime having id 2dec74f10fd12d8dcb28cb05ff058b4e4134ecb58d0e515c888f0611ca794339?"
+    cypher: |
+      MATCH (c:Crime {id: "2dec74f10fd12d8dcb28cb05ff058b4e4134ecb58d0e515c888f0611ca794339"})
+      MATCH (o:Object)-[:INVOLVED_IN]->(c)
+      RETURN c.id AS crime_id,
+             o.description AS evidence,
+             o.type AS evidence_type
+
+  - question: "What crimes is Raymond Walker involved in?"
+    cypher: |
+      MATCH (p:Person)
+      WHERE toLower(p.name) CONTAINS 'raymond'
+        AND toLower(p.surname) CONTAINS 'walker'
+
+      MATCH (p)-[:PARTY_TO]->(c:Crime)
+
+      RETURN p.name, p.surname,
+             c.type AS crime_type,
+             c.charge AS charge,
+             c.last_outcome AS status
+
+  - question: "Who are directly connected to Raymond Walker?"
+    cypher: |
+      MATCH (p1:Person)
+      WHERE toLower(p1.name) CONTAINS 'raymond'
+        AND toLower(p1.surname) CONTAINS 'walker'
+
+      MATCH (p1)-[rel:KNOWS|KNOWS_LW|KNOWS_PHONE|FAMILY_REL]-(p2:Person)
+
+      RETURN p1.name AS person,
+             type(rel) AS relationship,
+             p2.name AS associate,
+             p2.surname AS associate_surname
+
+  - question: "Find people connected to Raymond Walker within 2 hops"
+    cypher: |
+      MATCH (p1:Person)
+      WHERE toLower(p1.name) CONTAINS 'raymond'
+        AND toLower(p1.surname) CONTAINS 'walker'
+
+      MATCH path = (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE|FAMILY_REL*1..2]-(p2:Person)
+
+      RETURN path
+
+  - question: "Which people in Raymond Walker's network are also involved in crimes?"
+    cypher: |
+      MATCH (p1:Person)
+      WHERE toLower(p1.name) CONTAINS 'raymond'
+        AND toLower(p1.surname) CONTAINS 'walker'
+
+      MATCH (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE|FAMILY_REL*1..2]-(p2:Person)
+      MATCH (p2)-[:PARTY_TO]->(c:Crime)
+
+      RETURN p2.name AS associate,
+             p2.surname AS associate_surname,
+             c.type AS crime_type,
+             c.charge AS charge
+
+  - question: "Which people in Raymond Walker's network are involved in drug crimes?"
+    cypher: |
+      MATCH (p1:Person)
+      WHERE toLower(p1.name) CONTAINS 'raymond'
+        AND toLower(p1.surname) CONTAINS 'walker'
+
+      MATCH (p1)-[:KNOWS|KNOWS_LW|KNOWS_PHONE|FAMILY_REL*1..2]-(p2:Person)
+      MATCH (p2)-[:PARTY_TO]->(c:Crime)
+
+      WHERE toLower(c.type) CONTAINS 'drug'
+
+      RETURN p2.name AS associate,
+             p2.surname AS associate_surname,
+             c.type AS crime_type
+
+  - question: "Is the same evidence linked to multiple crimes?"
+    cypher: |
+      MATCH (o:Object)-[:INVOLVED_IN]->(c1:Crime)
+      MATCH (o)-[:INVOLVED_IN]->(c2:Crime)
+      WHERE c1 <> c2
+
+      RETURN o.description AS evidence,
+             c1.id AS crime_1,
+             c2.id AS crime_2
+
+  - question: "Summarize investigation findings for Raymond Walker"
+    cypher: |
+      MATCH (p:Person)
+      WHERE toLower(p.name) CONTAINS 'raymond'
+        AND toLower(p.surname) CONTAINS 'walker'
+
+      OPTIONAL MATCH (p)-[:PARTY_TO]->(c:Crime)
+      OPTIONAL MATCH (p)-[:KNOWS|KNOWS_LW|KNOWS_PHONE|FAMILY_REL]-(assoc:Person)
+
+      RETURN p.name AS suspect,
+             count(DISTINCT c) AS total_crimes,
+             count(DISTINCT assoc) AS network_size
   # ── BASIC + FILTERING ──────────────────────────────
   - question: "How many crimes are recorded?"
     cypher: |
