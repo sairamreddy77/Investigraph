@@ -51,6 +51,26 @@ def test_pipeline_classifies_who_question():
     assert pipeline._classify_question("Who investigated crime 123?") == "text2cypher"
 
 
+def test_pipeline_classifies_filter_heavy_question():
+    pipeline = _build_pipeline()
+
+    # Area code + outcome filter + multi-entity → text2cypher
+    assert pipeline._classify_question(
+        "Find all drug-related crimes in BL6 area that are under investigation. "
+        "Include the people involved, the evidence found, and the officers handling the cases."
+    ) == "text2cypher"
+
+    # Area code + crime type → text2cypher
+    assert pipeline._classify_question(
+        "Show all theft crimes in area WN3"
+    ) == "text2cypher"
+
+    # Outcome filter + find all → text2cypher
+    assert pipeline._classify_question(
+        "Find all crimes under investigation"
+    ) == "text2cypher"
+
+
 def test_pipeline_fallback_mapping():
     pipeline = _build_pipeline()
 
