@@ -1,79 +1,159 @@
 # backend/tests/test_pipeline.py
-import pytest
 from unittest.mock import Mock, patch
-import time
 
 
+def _settings_mock():
+    return Mock(
+        NEO4J_URI="bolt://localhost:7687",
+        NEO4J_USERNAME="neo4j",
+        NEO4J_PASSWORD="pass",
+        NEO4J_DATABASE="pole",
+        GROQ_API_KEY="test",
+        EMBEDDING_MODEL="all-MiniLM-L6-v2",
+        VECTOR_INDEX_NAME="crime_vector_index",
+        VECTOR_DIMENSIONS=384,
+        GRAPHRAG_TOP_K=5,
+        BACKEND_PORT=8000,
+        CORS_ORIGINS="*",
+        LOG_LEVEL="INFO",
+        LOG_QUERIES=True,
+    )
 
 
-def test_pipeline_orchestrates_full_flow(mock_settings):
-    """Test pipeline runs all 3 steps and returns complete response"""
-    with patch('core.pipeline.get_cypher_generator') as mock_gen:
-        with patch('core.pipeline.get_query_executor') as mock_exec:
-            with patch('core.pipeline.get_answer_generator') as mock_ans:
-                with patch('core.pipeline.get_schema_introspector') as mock_schema:
-                    with patch('core.pipeline.get_few_shot_loader') as mock_loader:
-                        # Mock Cypher generator
-                        mock_generator = Mock()
-                        mock_generator.generate.return_value = "MATCH (c:Crime) RETURN count(c)"
-                        mock_gen.return_value = mock_generator
+def _build_pipeline():
+    with patch("core.graphrag_pipeline.get_settings", return_value=_settings_mock()):
+        from core.graphrag_pipeline import GraphRAGPipeline
 
-                        # Mock query executor
-                        mock_executor = Mock()
-                        mock_executor.execute.return_value = {
-                            "results": [{"count": 100}],
-                            "cypher": "MATCH (c:Crime) RETURN count(c)",
-                            "attempts": 1,
-                            "graph_data": {"nodes": [], "edges": []}
-                        }
-                        mock_exec.return_value = mock_executor
-
-                        # Mock answer generator
-                        mock_answer_gen = Mock()
-                        mock_answer_gen.generate.return_value = "Found 100 crimes."
-                        mock_ans.return_value = mock_answer_gen
-
-                        # Mock schema and examples (avoid actual Neo4j connection)
-                        mock_schema.return_value = Mock()
-                        mock_loader.return_value = Mock()
-
-                        from core.pipeline import Pipeline
-
-                        pipeline = Pipeline()
-                        response = pipeline.run("How many crimes?")
-
-                        assert response["question"] == "How many crimes?"
-                        assert response["answer"] == "Found 100 crimes."
-                        assert response["cypher"] == "MATCH (c:Crime) RETURN count(c)"
-                        assert response["results"] == [{"count": 100}]
-                        assert response["attempts"] == 1
-                        assert "execution_time_ms" in response
+        return GraphRAGPipeline()
 
 
-def test_pipeline_initialization_caches_schema_and_examples(mock_settings):
-    """Test pipeline initializes schema and examples at startup"""
-    with patch('core.pipeline.get_cypher_generator') as mock_gen:
-        with patch('core.pipeline.get_query_executor') as mock_exec:
-            with patch('core.pipeline.get_answer_generator') as mock_ans:
-                with patch('core.pipeline.get_schema_introspector') as mock_schema:
-                    with patch('core.pipeline.get_few_shot_loader') as mock_loader:
-                        mock_introspector = Mock()
-                        mock_introspector.introspect.return_value = "NODES: Crime"
-                        mock_schema.return_value = mock_introspector
+def test_pipeline_classifies_structured_question():
+    pipeline = _build_pipeline()
 
-                        mock_few_shot = Mock()
-                        mock_few_shot.load.return_value = [{"question": "test", "cypher": "test"}]
-                        mock_loader.return_value = mock_few_shot
+    assert pipeline._classify_question("How many crimes?") == "text2cypher"
 
-                        # Return empty mocks for the other getters
-                        mock_gen.return_value = Mock()
-                        mock_exec.return_value = Mock()
-                        mock_ans.return_value = Mock()
 
-                        from core.pipeline import Pipeline
+def test_pipeline_classifies_semantic_question():
+    pipeline = _build_pipeline()
 
-                        pipeline = Pipeline()
-                        pipeline.initialize()
+    assert pipeline._classify_question("Tell me about drug crimes") == "vector_cypher"
 
-                        mock_introspector.introspect.assert_called_once()
-                        mock_few_shot.load.assert_called_once()
+
+def test_pipeline_classifies_lookup_question():
+    pipeline = _build_pipeline()
+
+    assert pipeline._classify_question("burglary") == "vector"
+
+
+def test_pipeline_classifies_who_question():
+    pipeline = _build_pipeline()
+
+    assert pipeline._classify_question("Who investigated crime 123?") == "text2cypher"
+
+
+def test_pipeline_fallback_mapping():
+    pipeline = _build_pipeline()
+
+    assert pipeline._get_fallback("text2cypher") == "vector_cypher"
+    assert pipeline._get_fallback("vector") == "vector_cypher"
+    assert pipeline._get_fallback("vector_cypher") == "text2cypher"
+
+
+def test_pipeline_run_returns_enriched_response():
+    pipeline = _build_pipeline()
+
+    result_item = Mock(
+        content="Crime count context",
+        metadata={
+            "cypher": "MATCH (c:Crime) RETURN count(c) AS total",
+        },
+    )
+    pipeline._text2cypher = Mock()
+    pipeline._text2cypher.search.return_value = Mock(items=[result_item])
+    pipeline._rag_instances = {
+        "text2cypher": Mock(search=Mock(return_value=Mock(answer="Found 42 crimes.")))
+    }
+
+    response = pipeline.run("How many crimes?")
+
+    assert response["question"] == "How many crimes?"
+    assert response["answer"] == "Found 42 crimes."
+    assert response["cypher"] == "MATCH (c:Crime) RETURN count(c) AS total"
+    assert response["results"] == [{"context": "Crime count context"}]
+    assert response["graph_data"] == {"nodes": [], "edges": []}
+    assert response["attempts"] == 1
+    assert isinstance(response["execution_time_ms"], int)
+    assert response["retriever_used"] == "text2cypher"
+    assert response["retriever_context"] == ["Crime count context"]
+
+
+def test_pipeline_run_with_fallback():
+    pipeline = _build_pipeline()
+
+    empty_result = Mock(answer="", retriever_result=Mock(items=[]))
+    enriched_item = Mock(
+        content="Crime: Burglary (ID: 123)",
+        metadata={"crime_id": "123", "crime_type": "Burglary", "area": "WN"},
+    )
+    fallback_result = Mock(
+        answer="Burglary incidents were found in area WN.",
+        retriever_result=Mock(items=[enriched_item]),
+    )
+    pipeline._rag_instances = {
+        "vector": Mock(search=Mock(return_value=empty_result)),
+        "vector_cypher": Mock(search=Mock(return_value=fallback_result)),
+    }
+
+    response = pipeline.run("burglary")
+
+    assert response["retriever_used"] == "vector → vector_cypher"
+    assert response["answer"] == "Burglary incidents were found in area WN."
+    assert response["results"] == [{"context": "Crime: Burglary (ID: 123)"}]
+    assert response["retriever_context"] == ["Crime: Burglary (ID: 123)"]
+    assert response["graph_data"]["nodes"]
+    assert response["graph_data"]["edges"]
+
+
+def test_pipeline_run_with_error():
+    pipeline = _build_pipeline()
+
+    pipeline._text2cypher = Mock()
+    pipeline._text2cypher.search.side_effect = RuntimeError("Retriever exploded")
+    pipeline._rag_instances = {"text2cypher": Mock()}
+
+    response = pipeline.run("How many crimes?")
+
+    assert response["question"] == "How many crimes?"
+    assert response["error"] == "Retriever exploded"
+    assert response["answer"] == "Unable to process query: Retriever exploded"
+    assert response["results"] == []
+    assert response["graph_data"] == {"nodes": [], "edges": []}
+
+
+def test_pipeline_extract_graph_data():
+    pipeline = _build_pipeline()
+
+    items = [
+        Mock(metadata={"crime_id": "123", "crime_type": "Burglary", "area": "WN"}),
+        Mock(metadata={"crime_id": "456", "crime_type": "Drugs", "area": "WN"}),
+        Mock(metadata=None),
+    ]
+
+    graph_data = pipeline._extract_graph_data_from_context(items)
+
+    node_ids = {node["id"] for node in graph_data["nodes"]}
+    assert "123" in node_ids
+    assert "456" in node_ids
+    assert "area_WN" in node_ids
+    assert any(edge["relationship"] == "OCCURRED_IN" for edge in graph_data["edges"])
+
+
+def test_pipeline_close():
+    pipeline = _build_pipeline()
+    driver = Mock()
+    pipeline._driver = driver
+
+    pipeline.close()
+
+    driver.close.assert_called_once()
+    assert pipeline._driver is None
