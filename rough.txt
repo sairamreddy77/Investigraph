@@ -117,3 +117,50 @@ TypeError: Text2CypherRetriever.get_search_results() got an unexpected keyword a
 2026-04-11 00:33:37,173 - app.main - INFO - ━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in 971ms
 2026-04-11 00:33:37,176 - app.main - INFO - ━━━ RESPONSE ━━━ POST /api/query - Status: 200 - Duration: 985ms        
 INFO:     127.0.0.1:62039 - "POST /api/query HTTP/1.1" 200 OK
+
+
+
+
+
+
+
+INFO:     127.0.0.1:52430 - "POST /api/query HTTP/1.1" 200 OK
+2026-04-11 00:43:33,410 - app.main - INFO - ━━━ INCOMING REQUEST ━━━
+2026-04-11 00:43:33,411 - app.main - INFO - Method: POST
+2026-04-11 00:43:33,412 - app.main - INFO - URL: http://localhost:8000/api/query
+2026-04-11 00:43:33,412 - app.main - INFO - Path: /api/query
+2026-04-11 00:43:33,413 - app.main - INFO - Query Params: {}
+2026-04-11 00:43:33,414 - app.main - INFO - Headers: {'host': 'localhost:8000', 'connection': 'close', 'content-length': '171', 'sec-ch-ua-platform': '"Windows"', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', 'sec-ch-ua': '"Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"', 'content-type': 'application/json', 'sec-ch-ua-mobile': '?0', 'accept': '*/*', 'origin': 'http://localhost:3000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty', 'referer': 'http://localhost:3000/', 'accept-encoding': 'gzip, deflate, br, zstd', 'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8,te;q=0.7,hi;q=0.6', 'cookie': 'ajs_anonymous_id=753d38e2-2d3d-4665-b940-6d5aa2b5127b; ajs_user_id=07880532-1a96-511e-ac61-ce9f04b34c5c; _streamlit_xsrf=2|a45b20c5|5f05507762e695230133187bd09b001d|1775832914'}
+2026-04-11 00:43:33,416 - app.main - INFO - Client: Address(host='127.0.0.1', port=53872)
+2026-04-11 00:43:33,418 - app.main - INFO - ━━━ QUERY ENDPOINT START ━━━
+2026-04-11 00:43:33,420 - app.main - INFO - Question received: Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases.
+2026-04-11 00:43:33,421 - app.main - INFO - Getting GraphRAG pipeline instance...
+2026-04-11 00:43:33,421 - app.main - INFO - Pipeline initialized: True
+2026-04-11 00:43:33,422 - app.main - INFO - Running GraphRAG pipeline...
+2026-04-11 00:43:33,422 - core.graphrag_pipeline - INFO - Running GraphRAG pipeline for: Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases.
+2026-04-11 00:43:33,423 - core.graphrag_pipeline - INFO - Selected retriever: vector_cypher
+Batches: 100%|███████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 13.50it/s]
+2026-04-11 00:43:34,502 - neo4j.notifications - WARNING - Received notification from DBMS server: {severity: WARNING} {code: Neo.ClientNotification.Statement.UnknownLabelWarning} {category: UNRECOGNIZED} {title: The provided label is not in the database.} {description: One of the labels in your query is not available in the database, make sure you didn't misspell it or that the label is available when you run this statement in your application (the missing label name is: AREA)} {position: line: 5, column: 52, offset: 350} for query: "CALL db.index.vector.queryNodes($vector_index_name, $top_k * $effective_search_ratio, $query_vector) YIELD node, score WITH node, score LIMIT $top_k \n        WITH node AS crime, score\n        OPTIONAL MATCH (p:Person)-[:PARTY_TO]->(crime)\n        OPTIONAL MATCH (crime)-[:OCCURRED_AT]->(l:Location)\n        OPTIONAL MATCH (l)-[:LOCATION_IN_AREA]->(a:AREA)\n        OPTIONAL MATCH (crime)-[:INVESTIGATED_BY]->(o:Officer)\n        RETURN crime.id AS crime_id,\n               crime.type AS crime_type,\n               crime.date AS crime_date,\n               crime.last_outcome AS outcome,\n               collect(DISTINCT p.name + ' ' + coalesce(p.surname, '')) AS people_involved,\n               l.address AS location,\n          
+     l.postcode AS postcode,\n               a.areaCode AS area,\n               collect(DISTINCT o.name + ' (' + coalesce(o.rank, '') + ')') AS officers,\n               score\n    "
+2026-04-11 00:43:37,370 - core.graphrag_pipeline - ERROR - Retriever 'vector_cypher' failed: GroqLLM.invoke() got an unexpected keyword argument 'message_history'
+Traceback (most recent call last):
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 283, in _execute_retriever
+    rag_result = rag.search(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\neo4j_graphrag\generation\graphrag.py", line 179, in search
+    llm_response = self.llm.invoke(
+TypeError: GroqLLM.invoke() got an unexpected keyword argument 'message_history'
+2026-04-11 00:43:37,373 - core.graphrag_pipeline - ERROR - GraphRAG pipeline error: GroqLLM.invoke() got an unexpected keyword argument 'message_history'
+Traceback (most recent call last):
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 154, in run
+    answer, cypher, results, graph_data, retriever_context = self._execute_retriever(
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 283, in _execute_retriever
+    rag_result = rag.search(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\neo4j_graphrag\generation\graphrag.py", line 179, in search
+    llm_response = self.llm.invoke(
+TypeError: GroqLLM.invoke() got an unexpected keyword argument 'message_history'
+2026-04-11 00:43:37,376 - core.graphrag_pipeline - INFO - GraphRAG pipeline completed in 3954ms (retriever: vector_cypher)
+2026-04-11 00:43:37,376 - app.main - INFO - Pipeline result keys: dict_keys(['question', 'answer', 'cypher', 'results', 'graph_data', 'attempts', 'execution_time_ms', 'retriever_used', 'retriever_context', 'error'])
+2026-04-11 00:43:37,377 - app.main - INFO - Converting to response model...
+2026-04-11 00:43:37,378 - app.main - INFO - ━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in 3954ms
+2026-04-11 00:43:37,379 - app.main - INFO - ━━━ RESPONSE ━━━ POST /api/query - Status: 200 - Duration: 3969ms       
+INFO:     127.0.0.1:53872 - "POST /api/query HTTP/1.1" 200 OK
