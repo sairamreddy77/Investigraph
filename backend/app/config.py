@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     # GraphRAG Configuration
     EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     VECTOR_DIMENSIONS: int = 384
-    VECTOR_INDEX_NAME: str = "pole_vector_index"
+    VECTOR_INDEX_NAME: str = "crime_vector_index"
     GRAPHRAG_TOP_K: int = 5
 
     # Server Config
