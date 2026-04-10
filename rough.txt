@@ -1,249 +1,119 @@
-=============================================== test session starts ===============================================
-platform win32 -- Python 3.10.18, pytest-8.2.0, pluggy-1.5.0 -- C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\python.exe
-cachedir: .pytest_cache
-rootdir: C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend
-configfile: pytest.ini
-plugins: anyio-4.9.0, langsmith-0.4.4, asyncio-0.23.7, mock-3.14.0
-asyncio: mode=strict
-collected 50 items
+INFO:     Waiting for application startup.
+2026-04-11 00:32:12,597 - app.main - INFO - Starting Investigraph GraphRAG API...
+2026-04-11 00:32:12,598 - app.main - INFO - Connecting to Neo4j...
+2026-04-11 00:32:12,642 - app.database - INFO - Connected to Neo4j at neo4j://127.0.0.1:7687
+2026-04-11 00:32:12,643 - app.main - INFO - Neo4j connection established
+2026-04-11 00:32:12,643 - app.main - INFO - Initializing GraphRAG pipeline...
+2026-04-11 00:32:12,643 - core.graphrag_pipeline - INFO - Initializing GraphRAG pipeline...
+2026-04-11 00:32:12,643 - app.embedder - INFO - Initializing SentenceTransformer embedder: all-MiniLM-L6-v2
+2026-04-11 00:32:30,879 - sentence_transformers.base.model - INFO - No device provided, using cpu
+2026-04-11 00:32:31,692 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:31,716 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json "HTTP/1.1 200 OK"
+2026-04-11 00:32:32,016 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:32,041 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json "HTTP/1.1 200 OK"
+2026-04-11 00:32:32,060 - sentence_transformers.base.model - INFO - Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
+2026-04-11 00:32:32,408 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:32,510 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config_sentence_transformers.json "HTTP/1.1 200 OK"
+2026-04-11 00:32:32,819 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:32,865 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/README.md "HTTP/1.1 200 OK"
+2026-04-11 00:32:33,230 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:33,258 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/modules.json "HTTP/1.1 200 OK"
+2026-04-11 00:32:33,637 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:33,656 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/sentence_bert_config.json "HTTP/1.1 200 OK" 
+2026-04-11 00:32:33,945 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-04-11 00:32:33,946 - huggingface_hub.utils._http - WARNING - Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-04-11 00:32:34,251 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:34,269 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json "HTTP/1.1 200 OK"
+Loading weights: 100%|█████████████████████████████████████████████████████████| 103/103 [00:00<00:00, 2295.45it/s]
+BertModel LOAD REPORT from: sentence-transformers/all-MiniLM-L6-v2
+Key                     | Status     |  |
+------------------------+------------+--+-
+embeddings.position_ids | UNEXPECTED |  |
 
-tests/test_api.py::test_root_endpoint PASSED                                                                 [  2%]
-tests/test_api.py::test_health_check_healthy FAILED                                                          [  4%]
-tests/test_api.py::test_health_check_neo4j_down FAILED                                                       [  6%]
-tests/test_api.py::test_health_check_pipeline_not_initialized FAILED                                         [  8%]
-tests/test_api.py::test_query_endpoint_success FAILED                                                        [ 10%]
-tests/test_api.py::test_query_endpoint_accepts_optional_cypher FAILED                                        [ 12%]
-tests/test_api.py::test_query_endpoint_empty_question PASSED                                                 [ 14%]
-tests/test_api.py::test_query_endpoint_missing_question PASSED                                               [ 16%]
-tests/test_api.py::test_query_endpoint_pipeline_error PASSED                                                 [ 18%]
-tests/test_api.py::test_query_endpoint_with_error_in_results FAILED                                          [ 20%]
-tests/test_api.py::test_schema_endpoint_success PASSED                                                       [ 22%]
-tests/test_api.py::test_examples_endpoint_success PASSED                                                     [ 24%]
-tests/test_api.py::test_case_studies_endpoint_success PASSED                                                 [ 26%]
-tests/test_config.py::test_config_loads_from_env PASSED                                                      [ 28%]
-tests/test_config.py::test_config_validates_required_fields FAILED                                           [ 30%]
-tests/test_database.py::test_neo4j_client_connects PASSED                                                    [ 32%] 
-tests/test_database.py::test_neo4j_client_query_executes PASSED                                              [ 34%]
-tests/test_database.py::test_neo4j_client_closes_connection PASSED                                           [ 36%]
-tests/test_few_shot_loader.py::test_few_shot_loader_loads_examples PASSED                                    [ 38%] 
-tests/test_few_shot_loader.py::test_few_shot_loader_formats_for_prompt PASSED                                [ 40%]
-tests/test_integration.py::test_full_pipeline_text2cypher_flow PASSED                                        [ 42%] 
-tests/test_integration.py::test_full_pipeline_vector_flow PASSED                                             [ 44%]
-tests/test_integration.py::test_full_pipeline_fallback_flow PASSED                                           [ 46%] 
-tests/test_integration.py::test_full_pipeline_error_handling PASSED                                          [ 48%]
-tests/test_integration.py::test_execution_time_tracking PASSED                                               [ 50%] 
-tests/test_llm.py::test_groq_client_initializes PASSED                                                       [ 52%]
-tests/test_llm.py::test_groq_client_generates_response PASSED                                                [ 54%]
-tests/test_llm.py::test_groq_llm_invoke PASSED                                                               [ 56%] 
-tests/test_llm.py::test_groq_llm_ainvoke PASSED                                                              [ 58%]
-tests/test_llm.py::test_groq_llm_singleton PASSED                                                            [ 60%]
-tests/test_llm.py::test_groq_llm_uses_model_params PASSED                                                    [ 62%]
-tests/test_pipeline.py::test_pipeline_classifies_structured_question PASSED                                  [ 64%] 
-tests/test_pipeline.py::test_pipeline_classifies_semantic_question PASSED                                    [ 66%] 
-tests/test_pipeline.py::test_pipeline_classifies_lookup_question PASSED                                      [ 68%]
-tests/test_pipeline.py::test_pipeline_classifies_who_question PASSED                                         [ 70%] 
-tests/test_pipeline.py::test_pipeline_fallback_mapping PASSED                                                [ 72%] 
-tests/test_pipeline.py::test_pipeline_run_returns_enriched_response PASSED                                   [ 74%]
-tests/test_pipeline.py::test_pipeline_run_with_fallback PASSED                                               [ 76%] 
-tests/test_pipeline.py::test_pipeline_run_with_error PASSED                                                  [ 78%] 
-tests/test_pipeline.py::test_pipeline_extract_graph_data PASSED                                              [ 80%] 
-tests/test_pipeline.py::test_pipeline_close PASSED                                                           [ 82%] 
-tests/test_retrievers.py::test_text2cypher_retry_wrapper_retries_on_error PASSED                             [ 84%]
-tests/test_retrievers.py::test_text2cypher_retry_wrapper_retries_on_empty PASSED                             [ 86%] 
-tests/test_retrievers.py::test_text2cypher_retry_wrapper_max_retries PASSED                                  [ 88%] 
-tests/test_retrievers.py::test_build_text2cypher_retriever PASSED                                            [ 90%] 
-tests/test_retrievers.py::test_build_vector_retriever PASSED                                                 [ 92%] 
-tests/test_retrievers.py::test_build_vector_cypher_retriever PASSED                                          [ 94%]
-tests/test_schema_introspector.py::test_schema_introspector_fetches_node_labels PASSED                       [ 96%] 
-tests/test_schema_introspector.py::test_schema_introspector_fetches_relationships PASSED                     [ 98%]
-tests/test_schema_introspector.py::test_schema_introspector_caches_result PASSED                             [100%] 
-
-==================================================== FAILURES ===================================================== 
-____________________________________________ test_health_check_healthy ____________________________________________ 
-
-client = <starlette.testclient.TestClient object at 0x000002AFB5C411B0>
-
-    def test_health_check_healthy(client):
-        response = client.get("/health")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-        assert data["neo4j_connected"] is True
-        assert data["pipeline_initialized"] is True
->       assert data["llm_available"] is True
-E       KeyError: 'llm_available'
-
-tests\test_api.py:111: KeyError
-__________________________________________ test_health_check_neo4j_down ___________________________________________ 
-
-client = <starlette.testclient.TestClient object at 0x000002AFB5C55720>
-mock_pipeline = <MagicMock name='get_graphrag_pipeline' id='2953694916864'>
-
-    def test_health_check_neo4j_down(client, mock_pipeline):
-        with patch("app.main.get_neo4j_client") as mock:
-            neo4j_client = Mock()
-            neo4j_client.query.side_effect = Exception("Connection failed")
-            mock.return_value = neo4j_client
-
-            response = client.get("/health")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "unhealthy"
-        assert data["neo4j_connected"] is False
->       assert data["llm_available"] is True
-E       KeyError: 'llm_available'
-
-tests\test_api.py:126: KeyError
------------------------------------------------- Captured log call ------------------------------------------------ 
-ERROR    app.main:main.py:198 Neo4j health check failed: Connection failed
-___________________________________ test_health_check_pipeline_not_initialized ____________________________________ 
-
-client = <starlette.testclient.TestClient object at 0x000002AFB5D5E1D0>
-
-    def test_health_check_pipeline_not_initialized(client):
-        with patch("app.main.get_graphrag_pipeline") as mock:
-            pipeline = Mock()
-            pipeline._initialized = False
-            mock.return_value = pipeline
-
-            response = client.get("/health")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "unhealthy"
-        assert data["pipeline_initialized"] is False
->       assert data["llm_available"] is False
-E       KeyError: 'llm_available'
-
-tests\test_api.py:141: KeyError
-___________________________________________ test_query_endpoint_success ___________________________________________ 
-
-client = <starlette.testclient.TestClient object at 0x000002AFB5BEADD0>
-mock_pipeline = <MagicMock name='get_graphrag_pipeline' id='2953693111552'>
-
-    def test_query_endpoint_success(client, mock_pipeline):
-        response = client.post("/api/query", json={"question": "How many crimes are recorded?"})
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["question"] == "Test question?"
-        assert data["answer"] == "Test answer"
-        assert data["cypher"] == "MATCH (n) RETURN n LIMIT 1"
-        assert data["results"] == [{"context": "Crime: Burglary (ID: 123)"}]
-        assert data["graph_data"] == {"nodes": [], "edges": []}
-        assert data["attempts"] == 1
-        assert data["execution_time_ms"] == 100
->       assert data["retriever_used"] == "vector_cypher"
-E       KeyError: 'retriever_used'
-
-tests\test_api.py:156: KeyError
-___________________________________ test_query_endpoint_accepts_optional_cypher ___________________________________ 
-
-client = <starlette.testclient.TestClient object at 0x000002AFB5CD43A0>
-
-    def test_query_endpoint_accepts_optional_cypher(client):
-        with patch("app.main.get_graphrag_pipeline") as mock:
-            pipeline = Mock()
-            pipeline._initialized = True
-            pipeline.run.return_value = {
-                "question": "burglary",
-                "answer": "Found similar burglary incidents.",
-                "cypher": None,
-                "results": [],
-                "graph_data": {"nodes": [], "edges": []},
-                "attempts": 1,
-                "execution_time_ms": 55,
-                "retriever_used": "vector",
-                "retriever_context": [],
-            }
-            mock.return_value = pipeline
-
-            response = client.post("/api/query", json={"question": "burglary"})
-
->       assert response.status_code == 200
-E       assert 500 == 200
-E        +  where 500 = <Response [500 Internal Server Error]>.status_code
-
-tests\test_api.py:180: AssertionError
------------------------------------------------- Captured log call ------------------------------------------------ 
-ERROR    app.main:main.py:288 ━━━ QUERY ENDPOINT ERROR ━━━
-ERROR    app.main:main.py:289 Error type: ValidationError
-ERROR    app.main:main.py:290 Error message: 1 validation error for QueryResponse
-cypher
-  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.8/v/string_type
+Notes:
+- UNEXPECTED:   can be ignored when loading from different task/architecture; not ok if you expect identical arch.  
+2026-04-11 00:32:34,842 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-04-11 00:32:35,174 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-04-11 00:32:35,584 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-04-11 00:32:35,888 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-04-11 00:32:36,198 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:36,260 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json "HTTP/1.1 200 OK"     
+2026-04-11 00:32:36,557 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:36,578 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json "HTTP/1.1 200 OK"
+2026-04-11 00:32:36,844 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:36,865 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/config.json "HTTP/1.1 200 OK"
+2026-04-11 00:32:37,173 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:37,191 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/tokenizer_config.json "HTTP/1.1 200 OK"     
+2026-04-11 00:32:37,659 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-11 00:32:38,040 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-11 00:32:38,552 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-11 00:32:38,566 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/c9745ed1d9f207416be6d2e6f8de32d1f16199bf/1_Pooling%2Fconfig.json "HTTP/1.1 200 OK"   
+2026-04-11 00:32:38,858 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+2026-04-11 00:32:38,867 - app.embedder - INFO - Embedder initialized
+2026-04-11 00:32:39,183 - core.schema_introspector - INFO - Introspecting Neo4j schema...
+2026-04-11 00:32:39,195 - core.schema_introspector - WARNING - APOC not available, using fallback query
+2026-04-11 00:32:41,197 - core.schema_introspector - INFO - Schema introspection complete
+2026-04-11 00:32:41,253 - core.few_shot_loader - INFO - Loaded 40 few-shot examples
+2026-04-11 00:32:41,466 - core.graphrag_pipeline - INFO - GraphRAG pipeline initialized with 3 retrievers
+2026-04-11 00:32:41,466 - app.main - INFO - GraphRAG pipeline initialization complete
+2026-04-11 00:32:41,467 - app.main - INFO - Loading case studies...
+2026-04-11 00:32:41,504 - core.case_study_loader - INFO - Loaded 4 case studies
+2026-04-11 00:32:41,505 - app.main - INFO - Loaded 4 case studies
+2026-04-11 00:32:41,505 - app.main - INFO - API ready on port 8000
+2026-04-11 00:32:41,505 - app.main - INFO - ━━━ REGISTERED ROUTES ━━━
+2026-04-11 00:32:41,505 - app.main - INFO -   HEAD, GET  /openapi.json
+2026-04-11 00:32:41,505 - app.main - INFO -   HEAD, GET  /docs
+2026-04-11 00:32:41,517 - app.main - INFO -   HEAD, GET  /docs/oauth2-redirect
+2026-04-11 00:32:41,519 - app.main - INFO -   HEAD, GET  /redoc
+2026-04-11 00:32:41,520 - app.main - INFO -   GET        /
+2026-04-11 00:32:41,522 - app.main - INFO -   GET        /health
+2026-04-11 00:32:41,522 - app.main - INFO -   POST       /api/query
+2026-04-11 00:32:41,523 - app.main - INFO -   GET        /api/schema
+2026-04-11 00:32:41,528 - app.main - INFO -   GET        /api/examples
+2026-04-11 00:32:41,528 - app.main - INFO -   GET        /api/case-studies
+2026-04-11 00:32:41,529 - app.main - INFO - ━━━━━━━━━━━━━━━━━━━━━━━━
+INFO:     Application startup complete.
+2026-04-11 00:33:36,190 - app.main - INFO - ━━━ INCOMING REQUEST ━━━
+2026-04-11 00:33:36,190 - app.main - INFO - Method: POST
+2026-04-11 00:33:36,191 - app.main - INFO - URL: http://localhost:8000/api/query
+2026-04-11 00:33:36,191 - app.main - INFO - Path: /api/query
+2026-04-11 00:33:36,192 - app.main - INFO - Query Params: {}
+2026-04-11 00:33:36,192 - app.main - INFO - Headers: {'host': 'localhost:8000', 'connection': 'close', 'content-length': '26', 'sec-ch-ua-platform': '"Windows"', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', 'sec-ch-ua': '"Google Chrome";v="147", "Not.A/Brand";v="8", "Chromium";v="147"', 'content-type': 'application/json', 'sec-ch-ua-mobile': '?0', 'accept': '*/*', 'origin': 'http://localhost:3000', 'sec-fetch-site': 'same-origin', 'sec-fetch-mode': 'cors', 'sec-fetch-dest': 'empty', 'referer': 'http://localhost:3000/', 'accept-encoding': 'gzip, deflate, br, zstd', 'accept-language': 'en-GB,en-US;q=0.9,en;q=0.8,te;q=0.7,hi;q=0.6', 'cookie': 'ajs_anonymous_id=753d38e2-2d3d-4665-b940-6d5aa2b5127b; ajs_user_id=07880532-1a96-511e-ac61-ce9f04b34c5c; _streamlit_xsrf=2|a45b20c5|5f05507762e695230133187bd09b001d|1775832914'}
+2026-04-11 00:33:36,192 - app.main - INFO - Client: Address(host='127.0.0.1', port=62039)
+2026-04-11 00:33:36,197 - app.main - INFO - ━━━ QUERY ENDPOINT START ━━━
+2026-04-11 00:33:36,198 - app.main - INFO - Question received: who is john
+2026-04-11 00:33:36,198 - app.main - INFO - Getting GraphRAG pipeline instance...
+2026-04-11 00:33:36,199 - app.main - INFO - Pipeline initialized: True
+2026-04-11 00:33:36,200 - app.main - INFO - Running GraphRAG pipeline...
+2026-04-11 00:33:36,200 - core.graphrag_pipeline - INFO - Running GraphRAG pipeline for: who is john
+2026-04-11 00:33:36,200 - core.graphrag_pipeline - INFO - Selected retriever: text2cypher
+2026-04-11 00:33:36,200 - core.retrievers - INFO - Text2Cypher attempt 1/3
+2026-04-11 00:33:37,023 - httpx - INFO - HTTP Request: POST https://api.groq.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-04-11 00:33:37,159 - core.retrievers - INFO - Text2Cypher succeeded with 4 results
+2026-04-11 00:33:37,160 - core.graphrag_pipeline - ERROR - Retriever 'text2cypher' failed: Text2CypherRetriever.get_search_results() got an unexpected keyword argument 'top_k'
 Traceback (most recent call last):
-  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\app\main.py", line 271, in query
-    response = QueryResponse(
-  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\pydantic\main.py", line 193, in __init__     
-    self.__pydantic_validator__.validate_python(data, self_instance=self)
-pydantic_core._pydantic_core.ValidationError: 1 validation error for QueryResponse
-cypher
-  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
-    For further information visit https://errors.pydantic.dev/2.8/v/string_type
-____________________________________ test_query_endpoint_with_error_in_results ____________________________________ 
-
-client = <starlette.testclient.TestClient object at 0x000002AFB5FBE620>
-
-    def test_query_endpoint_with_error_in_results(client):
-        with patch("app.main.get_graphrag_pipeline") as mock:
-            pipeline = Mock()
-            pipeline._initialized = True
-            pipeline.run.return_value = {
-                "question": "Test question?",
-                "answer": "Unable to process query",
-                "cypher": "",
-                "results": [],
-                "graph_data": {"nodes": [], "edges": []},
-                "attempts": 1,
-                "execution_time_ms": 250,
-                "error": "Retriever error",
-                "retriever_used": "text2cypher",
-                "retriever_context": [],
-            }
-            mock.return_value = pipeline
-
-            response = client.post("/api/query", json={"question": "Test question"})
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["error"] == "Retriever error"
->       assert data["retriever_used"] == "text2cypher"
-E       KeyError: 'retriever_used'
-
-tests\test_api.py:232: KeyError
-______________________________________ test_config_validates_required_fields ______________________________________ 
-
-monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002AFB5D5D210>
-
-    def test_config_validates_required_fields(monkeypatch):
-        """Test that missing required fields raise validation error"""
-        from app.config import Settings
-
-        monkeypatch.delenv("NEO4J_URI", raising=False)
-        monkeypatch.delenv("NEO4J_USERNAME", raising=False)
-        monkeypatch.delenv("NEO4J_PASSWORD", raising=False)
-        monkeypatch.delenv("GROQ_API_KEY", raising=False)
-
->       with pytest.raises(ValidationError):
-E       Failed: DID NOT RAISE <class 'pydantic_core._pydantic_core.ValidationError'>
-
-tests\test_config.py:32: Failed
-================================================ warnings summary ================================================= 
-..\..\..\..\..\Anaconda3\envs\llm_env\lib\site-packages\starlette\formparsers.py:12
-  C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\starlette\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
-    import multipart
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-============================================= short test summary info ============================================= 
-FAILED tests/test_api.py::test_health_check_healthy - KeyError: 'llm_available'
-FAILED tests/test_api.py::test_health_check_neo4j_down - KeyError: 'llm_available'
-FAILED tests/test_api.py::test_health_check_pipeline_not_initialized - KeyError: 'llm_available'
-FAILED tests/test_api.py::test_query_endpoint_success - KeyError: 'retriever_used'
-FAILED tests/test_api.py::test_query_endpoint_accepts_optional_cypher - assert 500 == 200
-FAILED tests/test_api.py::test_query_endpoint_with_error_in_results - KeyError: 'retriever_used'
-FAILED tests/test_config.py::test_config_validates_required_fields - Failed: DID NOT RAISE <class 'pydantic_core._pydantic_core.ValidationError'>
-===================================== 7 failed, 43 passed, 1 warning in 4.47s ===================================== 
-(llm_env) PS C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend> 
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 264, in _execute_retriever
+    rag_result = rag.search(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\neo4j_graphrag\generation\graphrag.py", line 151, in search
+    retriever_result: RetrieverResult = self.retriever.search(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\neo4j_graphrag\retrievers\base.py", line 154, in search
+    raw_result = self.get_search_results(*args, **kwargs)
+TypeError: Text2CypherRetriever.get_search_results() got an unexpected keyword argument 'top_k'
+2026-04-11 00:33:37,168 - core.graphrag_pipeline - ERROR - GraphRAG pipeline error: Text2CypherRetriever.get_search_results() got an unexpected keyword argument 'top_k'
+Traceback (most recent call last):
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 154, in run
+    answer, cypher, results, graph_data, retriever_context = self._execute_retriever(
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 264, in _execute_retriever
+    rag_result = rag.search(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\neo4j_graphrag\generation\graphrag.py", line 151, in search
+    retriever_result: RetrieverResult = self.retriever.search(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\neo4j_graphrag\retrievers\base.py", line 154, in search
+    raw_result = self.get_search_results(*args, **kwargs)
+TypeError: Text2CypherRetriever.get_search_results() got an unexpected keyword argument 'top_k'
+2026-04-11 00:33:37,171 - core.graphrag_pipeline - INFO - GraphRAG pipeline completed in 971ms (retriever: text2cypher)
+2026-04-11 00:33:37,171 - app.main - INFO - Pipeline result keys: dict_keys(['question', 'answer', 'cypher', 'results', 'graph_data', 'attempts', 'execution_time_ms', 'retriever_used', 'retriever_context', 'error'])
+2026-04-11 00:33:37,172 - app.main - INFO - Converting to response model...
+2026-04-11 00:33:37,173 - app.main - INFO - ━━━ QUERY ENDPOINT SUCCESS ━━━ Completed in 971ms
+2026-04-11 00:33:37,176 - app.main - INFO - ━━━ RESPONSE ━━━ POST /api/query - Status: 200 - Duration: 985ms        
+INFO:     127.0.0.1:62039 - "POST /api/query HTTP/1.1" 200 OK
