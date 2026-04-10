@@ -56,3 +56,59 @@ case_studies:
         goal: "Identify repeat locations"
         example_question: "Which specific locations have multiple crimes?"
         pattern: "Group by Location within area, count > 1"
+
+  - id: "drug-evidence-network-bl6"
+    title: "Drug Evidence and Network Investigation (BL6)"
+    description: "Investigate drug crimes in BL6 area, analyze evidence, identify suspect network, and detect criminal connections"
+    category: "End-to-End Investigation"
+
+    steps:
+      - step: 1
+        goal: "Identify high drug crime areas"
+        example_question: "Which areas have the highest number of drug-related crimes?"
+        pattern: "Aggregation by AREA using LOCATION_IN_AREA with count, ORDER BY DESC"
+
+      - step: 2
+        goal: "Filter active drug cases in BL6"
+        example_question: "Find all drug-related crimes in BL6 area that are under investigation. Include persons, evidence, and officers."
+        pattern: "Filter Crime by type + last_outcome + area, traverse PARTY_TO, INVOLVED_IN, INVESTIGATED_BY"
+
+      - step: 3
+        goal: "Retrieve evidence for a specific crime"
+        example_question: "What evidence is associated with the crime having id '2dec74f10fd12d8dcb28cb05ff058b4e4134ecb58d0e515c888f0611ca794339'?"
+        pattern: "Object → INVOLVED_IN → Crime filtering by exact id"
+
+      - step: 4
+        goal: "Check if suspect has multiple charges"
+        example_question: "What crimes is Raymond Walker involved in?"
+        pattern: "Person → PARTY_TO → Crime, return multiple records"
+
+      - step: 5
+        goal: "Find direct network of suspect"
+        example_question: "Who are directly connected to Raymond Walker?"
+        pattern: "Person → KNOWS / KNOWS_LW / KNOWS_PHONE / FAMILY_REL → Person"
+
+      - step: 6
+        goal: "Expand network to 2 hops"
+        example_question: "Find people connected to Raymond Walker within 2 hops"
+        pattern: "Multi-hop traversal (*1..2) on KNOWS-type relationships"
+
+      - step: 7
+        goal: "Identify criminal connections in network"
+        example_question: "Which people in Raymond Walker's network are also involved in crimes?"
+        pattern: "Traverse network → filter using PARTY_TO → Crime"
+
+      - step: 8
+        goal: "Focus on drug-related network"
+        example_question: "Which people in Raymond Walker's network are involved in drug crimes?"
+        pattern: "Network traversal + filter Crime.type = Drugs"
+
+      - step: 9
+        goal: "Link evidence across crimes"
+        example_question: "Is the same evidence linked to multiple crimes?"
+        pattern: "Object → INVOLVED_IN → multiple Crime nodes"
+
+      - step: 10
+        goal: "Build final case conclusion"
+        example_question: "Summarize the investigation findings for Raymond Walker"
+        pattern: "Combine crime, evidence, network, and repeat offender insights"
