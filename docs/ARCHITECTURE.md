@@ -1,8 +1,8 @@
-# Investigraph - System Architecture
+# Investigraph - GraphRAG System Architecture
 
 ## High-Level Architecture
 
-Investigraph follows a modern three-tier architecture with AI-powered query generation:
+Investigraph follows a modern three-tier architecture powered by a Neo4j GraphRAG pipeline:
 
 ```mermaid
 graph TB
@@ -16,41 +16,35 @@ graph TB
         QueryInput[Query Input Component]
         GraphViz[Graph Visualization]
         Results[Results Display]
-        ChatSidebar[Investigation Workflows]
+        Metadata[Retriever Metadata Panel]
     end
 
     subgraph "Backend Layer - FastAPI + Python"
         API[REST API Endpoints]
-        Pipeline[Query Pipeline Orchestrator]
-
-        subgraph "AI Components"
-            CypherGen[Cypher Generator LLM]
-            AnswerGen[Answer Generator LLM]
+        
+        subgraph "GraphRAG Pipeline"
+            Classifier[Question Classifier]
+            
+            subgraph "Retriever Strategies"
+                T2C[Text2Cypher Retriever]
+                VR[Vector Retriever]
+                VCR[VectorCypher Retriever]
+            end
+            
+            Generator[GraphRAG Answer Generator]
         end
 
         subgraph "Core Components"
+            LLM[Groq Llama-3.3-70b]
+            Embedder[SentenceTransformer Embedder]
             SchemaIntrospector[Schema Introspector]
-            FewShotLoader[Few-Shot Example Loader]
-            QueryExecutor[Query Executor with Retry]
-        end
-
-        subgraph "Data Components"
-            Examples[24 Curated Examples YAML]
-            CaseStudies[Investigation Case Studies]
         end
     end
 
     subgraph "Data Layer"
-        Neo4j[(Neo4j Graph Database)]
+        Neo4j[(Neo4j 5.23+)]
         POLE[POLE Knowledge Graph]
-    end
-
-    subgraph "External Services"
-        LLM[LLM Providers]
-        Groq[Groq LLaMA 3.3]
-        OpenAI[OpenAI GPT-4o]
-        Anthropic[Anthropic Claude]
-        Google[Google Gemini]
+        VectorIndex[Crime Vector Index]
     end
 
     User --> Browser
@@ -58,43 +52,126 @@ graph TB
     UI --> QueryInput
     UI --> GraphViz
     UI --> Results
-    UI --> ChatSidebar
+    UI --> Metadata
 
     QueryInput --> API
-    API --> Pipeline
-
-    Pipeline --> CypherGen
-    Pipeline --> QueryExecutor
-    Pipeline --> AnswerGen
-
-    CypherGen --> SchemaIntrospector
-    CypherGen --> FewShotLoader
-    FewShotLoader --> Examples
-
-    QueryExecutor --> Neo4j
+    API --> Classifier
+    
+    Classifier --> T2C
+    Classifier --> VR
+    Classifier --> VCR
+    
+    T2C --> Generator
+    VR --> Generator
+    VCR --> Generator
+    
+    T2C --> Neo4j
+    VR --> Neo4j
+    VCR --> Neo4j
+    
+    Generator --> LLM
+    T2C --> LLM
+    
+    VR --> Embedder
+    VCR --> Embedder
+    
     Neo4j --> POLE
+    Neo4j --> VectorIndex
 
-    CypherGen -.-> LLM
-    AnswerGen -.-> LLM
-    LLM --> Groq
-    LLM --> OpenAI
-    LLM --> Anthropic
-    LLM --> Google
-
-    ChatSidebar --> CaseStudies
-
-    Results --> GraphViz
-    QueryExecutor --> Results
-
+    Results --> UI
+    GraphViz --> UI
+    
     style User fill:#e1f5ff
     style Browser fill:#e1f5ff
     style UI fill:#bbdefb
-    style Pipeline fill:#fff9c4
-    style CypherGen fill:#c8e6c9
-    style AnswerGen fill:#c8e6c9
+    style Classifier fill:#fff9c4
+    style T2C fill:#c8e6c9
+    style VR fill:#c8e6c9
+    style VCR fill:#c8e6c9
     style Neo4j fill:#ffccbc
     style LLM fill:#f8bbd0
 ```
+
+---
+
+## Detailed Pipeline Flow
+
+The system orchestrates a multi-strategy retrieval process to ensure the most relevant context is gathered for answer generation:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant Classifier
+    participant Retriever as Retriever (T2C/VR/VCR)
+    participant Neo4j
+    participant RAG as GraphRAG Generator
+
+    User->>Frontend: "Find drug crimes in area WN"
+    Frontend->>API: POST /api/ask
+
+    API->>Classifier: classify_question(question)
+    Note over Classifier: Heuristic-based routing
+    Classifier-->>API: Selected strategy (e.g., text2cypher)
+
+    API->>Retriever: search(question)
+    
+    loop Max 3 Attempts (for Text2Cypher)
+        Retriever->>Neo4j: Execute Search/Query
+        alt Success
+            Neo4j-->>Retriever: Context + Metadata
+        else Failure/Empty
+            Retriever->>Retriever: Apply Retry/Fallback
+        end
+    end
+
+    Retriever-->>API: Context Items + Metadata
+
+    API->>RAG: search(question, context)
+    Note over RAG: Groq Llama-3.3-70b
+    RAG-->>API: Grounded Answer
+
+    API-->>Frontend: JSON (Answer, Metadata, Graph Data)
+    Frontend->>User: Display Result + Visualization
+```
+
+---
+
+## Retrieval Strategies
+
+| Strategy | Component | Description | Best For |
+|---|---|---|---|
+| **Text2Cypher** | `Text2CypherRetrieverWithRetry` | Translates NL to Cypher using schema context. | Counts, complex hops, filtering, aggregations. |
+| **Vector Search** | `VectorRetriever` | Pure semantic search on Crime node embeddings. | Keyword lookups, general similarity. |
+| **Hybrid Search** | `VectorCypherRetriever` | Semantic search + 2-hop neighborhood traversal. | Exploratory questions requiring social/local context. |
+
+---
+
+## Technology Stack
+
+### Backend
+- **FastAPI**: Asynchronous web framework.
+- **neo4j-graphrag**: Core orchestration for RAG patterns.
+- **Groq**: Llama-3.3-70b-versatile for high-speed inference.
+- **SentenceTransformers**: `all-MiniLM-L6-v2` for 384-dimension embeddings.
+- **Neo4j 5.23**: Graph database with native vector index support.
+
+### Frontend
+- **React 18 + TypeScript**: Type-safe component architecture.
+- **Vite**: Modern frontend tooling.
+- **vis-network**: Interactive graph visualization.
+
+---
+
+## Data Flow & Fallback Logic
+
+1. **Classification**: The `Question Classifier` analyzes the query.
+2. **Primary Retrieval**: The selected retriever attempts to gather context.
+3. **Fallback**: If the primary retriever returns empty results, the system automatically falls back to an alternative strategy (e.g., Text2Cypher falls back to VectorCypher).
+4. **Answer Generation**: The `GraphRAG Generator` synthesizes the final response using all gathered context.
+5. **Visualization**: Graph data is extracted from the retrieved nodes and metadata to populate the interactive UI.
+
 
 ---
 

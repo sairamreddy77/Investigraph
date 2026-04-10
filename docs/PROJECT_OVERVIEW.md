@@ -2,186 +2,70 @@
 
 ## Executive Summary
 
-**Investigraph** is an intelligent Natural Language to Cypher Query system designed for law enforcement and crime investigation agencies. It enables investigators to query complex crime investigation knowledge graphs using plain English questions, eliminating the need to learn graph query languages.
+**Investigraph** is an advanced GraphRAG (Retrieval-Augmented Generation) system tailored for law enforcement and crime investigation. By combining the structured power of Neo4j graph databases with the semantic reasoning of Large Language Models (LLMs), Investigraph allows investigators to query complex POLE (Person, Object, Location, Event) knowledge graphs using plain English.
+
+The system has been recently migrated from a legacy NL-to-Cypher pipeline to a modern **GraphRAG architecture** using the `neo4j-graphrag` framework, significantly improving retrieval accuracy and answer quality through multi-strategy search.
 
 ### The Problem
-- Law enforcement agencies store vast amounts of investigation data in graph databases
-- Querying this data requires knowledge of Cypher query language
-- Investigators need quick answers during active investigations
-- Complex relationship queries are difficult to formulate manually
+- **Technical Barrier**: Investigators need deep graph insights but lack Cypher expertise.
+- **Context Gap**: Traditional search often misses the "neighborhood" of a criminal incident.
+- **Hallucinations**: Standard LLMs may invent facts not present in the evidence database.
 
-### The Solution
-Investigraph translates natural language questions into precise Cypher queries, executes them against a Neo4j POLE (Person, Object, Location, Event) knowledge graph, and returns:
-- **Natural language answers** that investigators can immediately understand
-- **Interactive graph visualizations** showing relationships between entities
-- **Self-healing query execution** that automatically corrects errors
-- **Real-time results** with transparent query generation
+### The Solution: GraphRAG
+Investigraph addresses these challenges by grounding AI responses in a verified Neo4j knowledge graph. The system intelligently routes questions to different retrieval strategies, ensuring that every answer is contextually rich and factually accurate.
 
 ---
 
-## What is POLE?
+## Core Pillars of the New Architecture
 
-**POLE** is the industry-standard data model used in law enforcement for organizing investigation intelligence:
+### 1. Multi-Strategy Retrieval
+Unlike the previous system which relied solely on Cypher generation, the new architecture employs three distinct retrievers:
+- **Text2Cypher**: Precision-focused structured queries for counts and complex hops.
+- **Vector Search**: Semantic lookup for keyword-based or similar-incident searches.
+- **VectorCypher**: Hybrid search that retrieves semantic matches and their immediate graph neighborhood for maximum context.
 
-| Entity | Description | Examples |
-|--------|-------------|----------|
-| **Person** | Individuals involved in investigations | Suspects, victims, witnesses, informants |
-| **Object** | Physical evidence and items | Weapons, drugs, stolen goods, vehicles |
-| **Location** | Geographic areas and addresses | Crime scenes, residences, meeting points |
-| **Event** | Criminal incidents and interactions | Crimes, phone calls, meetings, transactions |
+### 2. Intelligent Query Routing
+A heuristic-based classification engine analyzes incoming questions to select the most appropriate retriever, ensuring optimal performance and response relevance.
 
-This model allows investigators to:
-- Track relationships between suspects and crimes
-- Identify criminal networks through association analysis
-- Map crime patterns across geographic areas
-- Analyze communication patterns and connections
+### 3. Context-Grounded Answer Generation
+Powered by **Groq Llama-3.3-70b**, the system synthesizes answers based strictly on retrieved graph context. This approach provides "grounded truth" and eliminates AI hallucinations.
 
 ---
 
-## Key Features
+## Technical Specifications
 
-### 1. Natural Language Interface
-```
-Instead of writing:
-MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
-WHERE c.type CONTAINS 'Drug' AND l.area = 'WN'
-RETURN p.name, c.type
-
-Investigators simply ask:
-"Find people involved in drug crimes in area WN"
-```
-
-### 2. Intelligent Query Generation
-- Uses Large Language Models (LLM) with full schema context
-- Trained on 24 curated example queries covering common investigation patterns
-- Understands complex multi-hop relationships
-- Supports aggregations, filtering, and network analysis
-
-### 3. Self-Healing Retry Logic
-The system automatically handles query failures:
-- **Syntax errors**: Feeds the error back to the LLM for self-correction
-- **Empty results**: Relaxes filters or tries alternative traversal paths
-- **Max 3 attempts**: Graceful failure with helpful error messages
-
-### 4. Multi-Provider LLM Support
-Choose the best provider for your needs:
-| Provider | Model | Strength |
-|----------|-------|----------|
-| **Groq** | LLaMA 3.3 70B | Fastest responses (< 500ms), free tier |
-| **OpenAI** | GPT-4o | Best accuracy for complex queries |
-| **Anthropic** | Claude Sonnet 4 | Highest quality reasoning |
-| **Google** | Gemini 2.0 Flash | Best value for cost |
-
-### 5. Interactive Graph Visualization
-- Color-coded nodes by entity type (Person, Crime, Location, etc.)
-- Interactive zoom, pan, and node selection
-- Relationship labels showing connection types
-- Click nodes to inspect properties
-- Export capabilities for reports
-
-### 6. Real-Time Investigation Support
-- Query execution in 1-5 seconds
-- See generated Cypher queries for transparency
-- Execution metadata (attempts, timing)
-- Natural language summaries of findings
+- **AI Engine**: Groq Llama-3.3-70b-versatile (State-of-the-art reasoning and speed).
+- **Embeddings**: SentenceTransformers `all-MiniLM-L6-v2` (384-dimensional vector space).
+- **Database**: Neo4j 5.23+ with native vector index support.
+- **Orchestration**: `neo4j-graphrag` Python framework.
+- **Frontend**: React 18 + TypeScript + vis-network for interactive graph exploration.
 
 ---
 
-## Use Cases
+## Comparison: Legacy vs. GraphRAG
 
-### Network Analysis
-**Question**: "Find people who know criminals"
-- Identifies suspects through association
-- Reveals criminal networks and hierarchies
-- Detects potential accomplices
-
-### Geographic Analysis
-**Question**: "Which area has the highest number of crimes?"
-- Identifies crime hotspots
-- Supports resource allocation decisions
-- Tracks crime patterns over time
-
-### Communication Analysis
-**Question**: "Find phone numbers of people involved in crimes"
-- Maps communication networks
-- Identifies key contact points
-- Supports surveillance planning
-
-### Multi-Hop Investigation
-**Question**: "Find people involved in drug crimes in area WN"
-- Combines multiple filtering criteria
-- Traverses complex relationships
-- Provides comprehensive investigation leads
+| Feature | Legacy System | New GraphRAG System |
+|---|---|---|
+| **Pipeline** | NL → Cypher → Results | NL → Routing → Multi-Strategy Retrieval → RAG |
+| **Search Mode** | Structured only | Structured, Semantic, and Hybrid |
+| **Answer Quality** | Template-based or simple LLM | Grounded GraphRAG synthesis |
+| **Context Window** | Limited to query results | Enriched graph neighborhoods |
+| **Error Handling** | Basic retry on syntax | Self-healing + Automatic strategy fallback |
 
 ---
 
-## System Benefits
+## Key Benefits for Investigators
 
-### For Investigators
-- ✅ **No technical training required** - Ask questions in plain English
-- ✅ **Fast query responses** - Get answers in seconds, not hours
-- ✅ **Visual exploration** - Understand relationships through graphs
-- ✅ **Transparent results** - See the underlying queries and logic
-
-### For Agencies
-- ✅ **Improved efficiency** - Reduce time spent on data queries
-- ✅ **Better insights** - Discover hidden connections and patterns
-- ✅ **Cost-effective** - Free and paid LLM options available
-- ✅ **Production-ready** - Comprehensive testing and error handling
-
-### For Technical Teams
-- ✅ **Flexible architecture** - Modular components, easy to extend
-- ✅ **Multiple deployment options** - Docker, cloud platforms, on-premises
-- ✅ **Comprehensive testing** - Unit tests, integration tests, manual checklists
-- ✅ **Clear documentation** - Well-documented codebase and APIs
-
----
-
-## Performance Metrics
-
-### Response Times
-| Query Type | Typical Response Time |
-|------------|----------------------|
-| Simple count query | < 1 second |
-| Relationship query | 1-2 seconds |
-| Multi-hop query | 2-3 seconds |
-| Complex aggregation | 3-5 seconds |
-
-### Accuracy
-- **Query generation accuracy**: 85-95% (first attempt success rate)
-- **Self-healing success**: 95%+ queries succeed within 3 attempts
-- **Result relevance**: High (based on manual test validation)
-
----
-
-## Technology Highlights
-
-- **Modern Python Backend**: FastAPI for high performance APIs
-- **Reactive Frontend**: React 18 with TypeScript for type safety
-- **Graph Database**: Neo4j for optimized relationship queries
-- **LLM Integration**: LangChain for flexible AI provider support
-- **Real-time Visualization**: vis-network for interactive graphs
-
----
-
-## Project Status
-
-- ✅ **Production-ready architecture**
-- ✅ **Comprehensive test coverage** (55+ manual test scenarios)
-- ✅ **Multi-provider LLM support**
-- ✅ **Docker containerization**
-- ✅ **Cloud deployment guides**
-- ✅ **Self-healing query execution**
-- ✅ **Interactive graph visualization**
+- **Speed**: Get complex multi-hop answers in 1-3 seconds.
+- **Accuracy**: Answers are directly linked to database records with visible metadata.
+- **Exploration**: Interactive graph visualization allows for manual relationship tracing.
+- **Ease of Use**: No need to know Cypher, SQL, or database schemas.
 
 ---
 
 ## Future Roadmap
 
-- 🔄 Voice input for hands-free querying
-- 🔄 Export results to PDF/CSV for reports
-- 🔄 Query history and favorites
-- 🔄 Advanced graph analytics (centrality, community detection)
-- 🔄 Real-time collaboration features
-- 🔄 Custom dashboards for different investigation types
-- 🔄 Role-based access control
+- **Voice Integration**: Hands-free investigation querying.
+- **Advanced Analytics**: Community detection and centrality analysis for criminal hierarchies.
+- **Reporting**: One-click PDF export for investigation summaries and case files.
+- **Collaboration**: Shared investigation spaces for multi-agency task forces.

@@ -1,43 +1,123 @@
-# Investigraph - System Methodology
+# Investigraph - GraphRAG Methodology
 
 ## Overview
 
-Investigraph employs a **4-module architecture** that transforms natural language questions into actionable investigation insights. Each module is specialized and works in concert to deliver accurate, fast, and reliable results.
+Investigraph employs a **4-module GraphRAG methodology** that transforms natural language questions into context-grounded investigation insights. This system moves beyond simple query generation by integrating semantic retrieval with structured graph analysis.
 
 ---
 
-## Module 1: Natural Language Understanding & Query Generation
+## Module 1: Intelligent Query Routing
 
 ### Purpose
-Convert investigator questions into precise Cypher graph queries without requiring technical knowledge.
+Analyze the investigator's question and select the optimal retrieval strategy based on the query's intent (structured, semantic, or lookup).
 
 ### Components
-- **Schema Introspector**: Automatically detects and caches the Neo4j database structure
-- **Few-Shot Example Loader**: Provides 24 curated example question-query pairs
-- **Cypher Generator (LLM)**: Uses AI to translate natural language to Cypher
+- **Question Classifier**: A heuristic-based engine that identifies patterns in the natural language input.
+- **Routing Logic**: Maps questions to one of three specialized retrievers:
+  - **Text2Cypher**: For queries requiring counts, specific filters, or complex relationship hops.
+  - **Vector**: For keyword-based lookups or general similarity searches.
+  - **VectorCypher**: For exploratory questions requiring both semantic relevance and neighborhood context.
 
-### How It Works
+### Classification Heuristics
+- **Structured**: Triggered by keywords like "how many", "count", "which", "most", "connected to".
+- **Semantic**: Triggered by "tell me about", "describe", "explain", "summarize".
+- **Lookup**: Default for short queries (≤ 4 words) or keyword searches.
+
+---
+
+## Module 2: Multi-Strategy Retrieval
+
+### Purpose
+Gather the most relevant context from the Neo4j knowledge graph using the selected strategy, ensuring high recall and precision.
+
+### Components
+- **Text2CypherRetrieverWithRetry**: 
+  - Translates NL to Cypher using schema and few-shot examples.
+  - Features a **self-healing retry mechanism** (max 3 attempts) that handles syntax errors and empty results by feeding error context back to the LLM.
+- **VectorRetriever**: 
+  - Performs semantic search on `Crime` node embeddings.
+  - Uses `crime_vector_index` and `all-MiniLM-L6-v2` embeddings (384 dims).
+- **VectorCypherRetriever**: 
+  - Combines vector search with a Cypher-based graph traversal.
+  - Enriches semantic results with 2-hop neighborhood data (involved persons, investigating officers, and locations).
+
+### Fallback Mechanism
+If the primary retriever returns no results, the system automatically attempts a fallback strategy (e.g., `Text2Cypher` → `VectorCypher`) to ensure no information is missed.
+
+---
+
+## Module 3: GraphRAG Answer Generation
+
+### Purpose
+Synthesize a human-readable, context-grounded answer based on the retrieved graph context and the original question.
+
+### Components
+- **GraphRAG Orchestrator**: Manages the interaction between the retriever and the generator.
+- **Answer Generator (Groq Llama-3.3-70b)**:
+  - Uses a specialized RAG prompt template.
+  - Grounded strictly in the retrieved context to prevent hallucinations.
+  - Summarizes complex graph relationships into clear investigation leads.
+
+### Example Generation Flow
+1. **Input**: Question + Retrieved Context Items (Nodes/Properties/Neighborhoods).
+2. **Reasoning**: The LLM analyzes the context to find direct answers and relevant associations.
+3. **Output**: A natural language response that cites specific entities and counts from the database.
+
+---
+
+## Module 4: Interactive Visualization & UI
+
+### Purpose
+Present findings to investigators through a combination of natural language, raw data, and interactive relationship graphs.
+
+### Components
+- **Metadata Panel**: Displays the retriever used, execution time, and number of context items retrieved.
+- **Interactive Graph**:
+  - Renders nodes and edges retrieved during the search.
+  - Highlights the central entities (e.g., Crimes) and their connections (Persons, Locations).
+  - Allows investigators to click nodes to inspect full property details.
+- **Response Display**: Presents the NL answer alongside the generated Cypher (for transparency) and tabular results.
+
+### Visualization Features
+- **Retriever Metadata**: Frontend displays `retriever_used` and `retriever_context` for auditability.
+- **Dynamic Layout**: Automatically organizes nodes to reveal clusters and hubs in the criminal network.
+
+---
+
+## Integration Flow
 
 ```mermaid
-flowchart LR
-    Question[User Question] --> Context[Build Context]
+sequenceDiagram
+    actor Investigator
+    participant UI as Frontend UI
+    participant M1 as Module 1: Query Routing
+    participant M2 as Module 2: Retrieval
+    participant M3 as Module 3: Generation
+    participant M4 as Module 4: Visualization
+    participant DB as Neo4j (Graph + Vector)
 
-    Context --> Schema[Graph Schema]
-    Context --> Examples[24 Training Examples]
-    Context --> Properties[Known Property Values]
+    Investigator->>UI: "Explain the crimes in area WN"
+    
+    UI->>M1: Question
+    Note over M1: Classified as 'semantic'
+    M1-->>UI: Route to VectorCypher
 
-    Schema --> Prompt[LLM Prompt]
-    Examples --> Prompt
-    Properties --> Prompt
-    Question --> Prompt
+    UI->>M2: VectorCypher.search()
+    M2->>DB: Vector Search + Graph Traversal
+    DB-->>M2: Context Items
+    M2-->>UI: Retrieval Metadata
 
-    Prompt --> LLM[Large Language Model]
-    LLM --> Cypher[Cypher Query]
+    UI->>M3: GraphRAG.generate(context)
+    Note over M3: Groq Llama-3.3-70b
+    M3-->>UI: Grounded NL Answer
 
-    style Question fill:#e1f5ff
-    style LLM fill:#fff9c4
-    style Cypher fill:#c8e6c9
+    UI->>M4: Extract Graph Data
+    M4->>M4: Parse Retriever Metadata
+    M4-->>UI: Interactive Graph
+
+    UI-->>Investigator: Answer + Graph + Metadata
 ```
+
 
 ### Example Training Patterns
 

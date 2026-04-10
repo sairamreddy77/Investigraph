@@ -36,6 +36,11 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
 
         {/* Metadata */}
         <div className="metadata">
+          {response.retriever_used && (
+            <span className="metadata-item" title="Retrieval strategy used">
+              Strategy: {response.retriever_used}
+            </span>
+          )}
           {response.attempts && (
             <span className="metadata-item">
               Attempts: {response.attempts}
@@ -49,30 +54,32 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
         </div>
       </div>
 
-      {/* Generated Cypher Query (Collapsible) */}
-      <div className="cypher-section">
-        <div
-          className="section-header"
-          onClick={() => setShowCypher(!showCypher)}
-        >
-          <h3>Generated Cypher Query</h3>
-          <span className="toggle-icon">{showCypher ? '▼' : '▶'}</span>
-        </div>
-
-        {showCypher && (
-          <div className="cypher-content">
-            <pre>
-              <code>{response.cypher}</code>
-            </pre>
-            <button
-              className="copy-button"
-              onClick={() => navigator.clipboard.writeText(response.cypher)}
-            >
-              Copy
-            </button>
+      {/* Generated Cypher Query (Collapsible) - only if cypher exists */}
+      {response.cypher && response.cypher.trim() !== '' && (
+        <div className="cypher-section">
+          <div
+            className="section-header"
+            onClick={() => setShowCypher(!showCypher)}
+          >
+            <h3>Generated Cypher Query</h3>
+            <span className="toggle-icon">{showCypher ? '▼' : '▶'}</span>
           </div>
-        )}
-      </div>
+
+          {showCypher && (
+            <div className="cypher-content">
+              <pre>
+                <code>{response.cypher}</code>
+              </pre>
+              <button
+                className="copy-button"
+                onClick={() => navigator.clipboard.writeText(response.cypher || '')}
+              >
+                Copy
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Results Table */}
       {hasResults && (

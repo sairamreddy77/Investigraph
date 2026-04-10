@@ -1,33 +1,107 @@
-# POLE Neo4j — Intelligent Crime Investigation QA System
+# Investigraph - GraphRAG Investigation System Implementation Plan
 
-> A from-scratch implementation plan for building a natural-language-to-Cypher QA system over a POLE (Person, Object, Location, Event) crime knowledge graph.
+> A technical specification for the GraphRAG-powered POLE (Person, Object, Location, Event) crime investigation system.
 
 ---
 
 ## 1. System Overview
 
 ### Goal
-Users ask natural-language questions about crime investigations → the system generates Cypher → executes against Neo4j → returns a clear answer with optional graph visualization.
+To build a state-of-the-art GraphRAG system that transforms natural language investigator questions into intelligent, data-grounded answers by combining structured Cypher generation with semantic vector-enriched retrieval.
 
-### Architecture (3-Step Pipeline with Retry)
+### Core Architecture (Multi-Strategy GraphRAG)
 
 ```mermaid
 flowchart TD
-    A["🧑 User Question"] --> B["⚡ Cypher Generator<br/>(Schema + Few-Shots + Property Values)"]
-    B --> C["🗄️ Execute on Neo4j"]
-    C -->|Syntax Error| D["🔄 Self-Correct<br/>(Feed error back to LLM)"]
-    D --> B
-    C -->|Empty Results| E["🔄 Reformulate<br/>(Relax filters, try alternate paths)"]
-    E --> B
-    C -->|Success| F["💬 Answer Generator"]
-    F --> G["📊 Response + Graph Data"]
-
-    style A fill:#4CAF50,color:#fff
-    style B fill:#2196F3,color:#fff
-    style C fill:#FF9800,color:#fff
-    style F fill:#9C27B0,color:#fff
-    style G fill:#4CAF50,color:#fff
+    User[Investigator Question] --> Classifier[Heuristic Question Classifier]
+    
+    Classifier -->|Structured| T2C[Text2Cypher Retriever]
+    Classifier -->|Lookup| VR[Vector Retriever]
+    Classifier -->|Semantic| VCR[VectorCypher Retriever]
+    
+    T2C --> Orchestrator[Context Orchestrator]
+    VR --> Orchestrator
+    VCR --> Orchestrator
+    
+    Orchestrator -->|Results Found| Gen[RAG Answer Generator]
+    Orchestrator -->|No Results| VCR_Fallback[VectorCypher Fallback]
+    VCR_Fallback --> Gen
+    
+    Gen --> UI[Final Answer + Graph Visualization]
+    
+    style User fill:#f9f,stroke:#333,stroke-width:4px
+    style Gen fill:#bbf,stroke:#333,stroke-width:2px
 ```
+
+---
+
+## 2. Technical Stack
+
+- **Backend**: FastAPI (Python)
+- **Graph Database**: Neo4j 5.23+
+- **LLM**: Groq Llama-3.3-70b-versatile
+- **Embeddings**: SentenceTransformers `all-MiniLM-L6-v2` (384-dim)
+- **Orchestration**: `neo4j-graphrag` Python library
+- **Frontend**: React + TypeScript + Vite + vis-network
+
+---
+
+## 3. Retrieval Strategies
+
+The system implements three distinct retrieval strategies to ensure high accuracy across different types of investigator queries.
+
+| Strategy | Description | Best For |
+|---|---|---|
+| **Text2Cypher** | Translates NL to precise Cypher queries using a schema-aware LLM prompt and 24 few-shot examples. | Counts, aggregations, multi-hop joins, and structured filters (e.g., "How many...", "List all..."). |
+| **Vector Search** | Semantic search against high-dimensional embeddings of `Crime` nodes stored in Neo4j. | Similarity-based lookups and vague descriptions (e.g., "Tell me about incidents like theft"). |
+| **VectorCypher** | Hybrid retrieval: Perform vector search, then traverse the graph to gather neighborhood context. | Deep investigative context (e.g., "Show people and locations connected to drug crimes"). |
+
+---
+
+## 4. Implementation Components
+
+### 4.1 Heuristic Question Classifier
+Instead of an expensive LLM call for every routing decision, the system uses a keyword-based heuristic to route questions to the most appropriate retriever.
+- **Structured Routing**: Triggered by keywords like "how many", "list", "who", "where", "total", "count".
+- **Semantic Routing**: Triggered by exploratory words like "about", "describe", "detail", "similar".
+
+### 4.2 Embedding Migration Script (`scripts/create_embeddings.py`)
+A core utility that ensures the graph is ready for GraphRAG operations:
+1. Creates `crime_vector_index` on `Crime(embedding)`.
+2. Encodes crime node properties (type, charge, note) into 384-dimension vectors.
+3. Batch-updates the graph with vector data.
+
+### 4.3 Self-Healing Text2Cypher
+A robust execution wrapper that handles:
+- **Syntax Errors**: Automatically feeds the Cypher error back to the LLM for correction (max 2 retries).
+- **Empty Results**: If a structured query returns no data, the system falls back to a VectorCypher search to find "near matches."
+
+---
+
+## 5. Knowledge Graph Schema (POLE)
+
+The system operates on the POLE (Person, Object, Location, Event) model:
+
+- **Nodes**: `Person`, `Crime`, `Location`, `Vehicle`, `Object`, `Officer`, `Phone`, `Email`, `PostCode`, `AREA`.
+- **Relationships**: `PARTY_TO`, `OCCURRED_AT`, `INVESTIGATED_BY`, `INVOLVED_IN`, `HAS_PHONE`, `KNOWS`, `FAMILY_REL`, etc.
+
+---
+
+## 6. Success Criteria
+
+- **Accuracy**: At least 85% correct answers across the 24 standard test cases.
+- **Performance**: Average end-to-end response time under 3 seconds.
+- **Reliability**: Successful recovery from Cypher syntax errors via self-healing logic.
+- **Groundedness**: Zero hallucinations; all answers must be derived from retrieved graph context.
+
+---
+
+## 7. Future Enhancements
+
+- [ ] Transition from heuristic to LLM-based query routing.
+- [ ] Implement multi-modal retrieval (images of evidence).
+- [ ] Add temporal analysis for crime pattern detection.
+- [ ] Integrate real-time officer dispatch logs.
 
 ### Why This Design?
 
