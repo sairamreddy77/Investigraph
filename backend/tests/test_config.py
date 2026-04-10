@@ -30,4 +30,5 @@ def test_config_validates_required_fields(monkeypatch):
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
 
     with pytest.raises(ValidationError):
-        Settings()
+        # _env_file=None prevents pydantic-settings from reading .env
+        Settings(_env_file=None)
