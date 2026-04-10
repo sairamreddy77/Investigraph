@@ -197,7 +197,7 @@ def build_vector_cypher_retriever(
         WITH node AS crime, score
         OPTIONAL MATCH (p:Person)-[:PARTY_TO]->(crime)
         OPTIONAL MATCH (crime)-[:OCCURRED_AT]->(l:Location)
-        OPTIONAL MATCH (l)-[:LOCATION_IN_AREA]->(a:AREA)
+        OPTIONAL MATCH (l)-[:LOCATION_IN_AREA]->(a:Area)
         OPTIONAL MATCH (crime)-[:INVESTIGATED_BY]->(o:Officer)
         RETURN crime.id AS crime_id,
                crime.type AS crime_type,

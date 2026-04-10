@@ -349,7 +349,7 @@ class GraphRAGPipeline:
                 if area_id not in nodes_dict:
                     nodes_dict[area_id] = {
                         "id": area_id,
-                        "label": "AREA",
+                        "label": "Area",
                         "properties": {"areaCode": area}
                     }
                 edges.append({
