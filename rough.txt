@@ -268,3 +268,155 @@ Then ask the same question via the UI:
 - Generated Cypher should use `(a:Area)` not `(a:AREA)`
 
 Paste me the results and I'll verify.
+
+
+
+
+==================================================== FAILURES ===================================================== 
+_______________________________________ test_full_pipeline_text2cypher_flow _______________________________________ 
+
+    def test_full_pipeline_text2cypher_flow():
+        with ExitStack() as stack:
+            pipeline, mocks = _initialize_pipeline(stack)
+            mocks["text2cypher"].search.return_value = Mock(
+                items=[
+                    Mock(
+                        content="Crime count context",
+                        metadata={"cypher": "MATCH (c:Crime) RETURN count(c) AS total"},
+                    )
+                ]
+            )
+            mocks["rag_text2cypher"].search.return_value = Mock(answer="There are 42 crimes.")
+
+            response = pipeline.run("How many crimes are recorded?")
+
+            assert response["retriever_used"] == "text2cypher"
+>           assert response["answer"] == "There are 42 crimes."
+E           AssertionError: assert <Mock name='get_groq_llm().invoke().content' id='2269655564192'> == 'There are 42 crimes.'
+
+tests\test_integration.py:99: AssertionError
+___________________________________ test_pipeline_run_returns_enriched_response ___________________________________ 
+
+    def test_pipeline_run_returns_enriched_response():
+        pipeline = _build_pipeline()
+
+        result_item = Mock(
+            content="Crime count context",
+            metadata={
+                "cypher": "MATCH (c:Crime) RETURN count(c) AS total",
+            },
+        )
+        pipeline._text2cypher = Mock()
+        pipeline._text2cypher.search.return_value = Mock(items=[result_item])
+        pipeline._rag_instances = {
+            "text2cypher": Mock(search=Mock(return_value=Mock(answer="Found 42 crimes.")))
+        }
+
+        response = pipeline.run("How many crimes?")
+
+        assert response["question"] == "How many crimes?"
+>       assert response["answer"] == "Found 42 crimes."
+E       assert "Unable to pr...id_api_key'}}" == 'Found 42 crimes.'
+E
+E         - Found 42 crimes.
+E         + Unable to process query: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+
+tests\test_pipeline.py:100: AssertionError
+------------------------------------------------ Captured log call ------------------------------------------------ 
+ERROR    app.llm:llm.py:75 Groq API error: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+ERROR    core.graphrag_pipeline:graphrag_pipeline.py:355 Retriever 'text2cypher' failed: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+Traceback (most recent call last):
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 327, in _execute_retriever
+    llm_response = self.llm.invoke(prompt)
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\app\llm.py", line 66, in invoke
+    response = self.client.chat.completions.create(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\resources\chat\completions.py", line 289, in create
+    return self._post(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\_base_client.py", line 1225, in post    
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\_base_client.py", line 920, in request  
+    return self._request(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\_base_client.py", line 1018, in _request
+    raise self._make_status_error_from_response(err.response) from None
+groq.AuthenticationError: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+ERROR    core.graphrag_pipeline:graphrag_pipeline.py:169 GraphRAG pipeline error: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+Traceback (most recent call last):
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 154, in run
+    answer, cypher, results, graph_data, retriever_context = self._execute_retriever(
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\core\graphrag_pipeline.py", line 327, in _execute_retriever
+    llm_response = self.llm.invoke(prompt)
+  File "C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend\app\llm.py", line 66, in invoke
+    response = self.client.chat.completions.create(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\resources\chat\completions.py", line 289, in create
+    return self._post(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\_base_client.py", line 1225, in post    
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\_base_client.py", line 920, in request  
+    return self._request(
+  File "C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\groq\_base_client.py", line 1018, in _request
+    raise self._make_status_error_from_response(err.response) from None
+groq.AuthenticationError: Error code: 401 - {'error': {'message': 'Invalid API Key', 'type': 'invalid_request_error', 'code': 'invalid_api_key'}}
+================================================ warnings summary ================================================= 
+..\..\..\..\..\Anaconda3\envs\llm_env\lib\site-packages\starlette\formparsers.py:12
+  C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\starlette\formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+..\..\..\..\..\Anaconda3\envs\llm_env\lib\site-packages\pydantic\_internal\_fields.py:201
+  C:\Users\SAIRAM REDDY\Anaconda3\envs\llm_env\lib\site-packages\pydantic\_internal\_fields.py:201: UserWarning: Field name "schema" in "SchemaResponse" shadows an attribute in parent "BaseModel"
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================= short test summary info ============================================= 
+FAILED tests/test_integration.py::test_full_pipeline_text2cypher_flow - AssertionError: assert <Mock name='get_groq_llm().invoke().content' id='2269655564192'> == 'There are 42 crimes.'
+FAILED tests/test_pipeline.py::test_pipeline_run_returns_enriched_response - assert "Unable to pr...id_api_key'}}" == 'Found 42 crimes.'
+==================================== 2 failed, 49 passed, 2 warnings in 4.30s ===================================== 
+(llm_env) PS C:\Users\SAIRAM REDDY\OneDrive\Desktop\vscode\Investigraph\backend> 
+
+
+the earlier prompt gave correct results - 
+Find all drug-related crimes in BL6 area that are under investigation. Include the people involved, the evidence found, and the officers handling the cases.
+
+Answer
+No drug-related crimes in the BL6 area are found under investigation in the provided context. 
+
+The context only provides information about a single crime with two records, but it does not specify the location of the crime. The details of the crime are:
+* Crime ID: 2dec74f10fd12d8dcb28cb05ff058b4e4134ecb58d0e515c888f0611ca794339
+* Crime Type: Drugs
+* Status: Under investigation
+* Person Involved: Raymond
+* Evidence: 
+  - £3,500 currency
+  - 43 Cannabis Plants, 3kg Prepared Cannabis
+* Investigating Officer: Devy
+
+Location information (BL6 area) is missing from the context.
+
+
+
+prompt - What crimes is Raymond Walker involved in?
+No information is available on Raymond Walker's involvement in crimes. The provided context does not mention Raymond Walker. It lists five "Other theft" crimes with their respective dates, locations, outcomes, and investigating officers, but does not reference an individual by that name.
+
+but previous system answer
+What crimes is Raymond Walker involved in?
+
+Answer
+Raymond Walker is involved in two crimes: 
+* Drugs: Production of Cannabis with Intent to Supply, currently under investigation
+* Vehicle crime, with a charge not specified, and a status of suspended prison sentence. 
+
+These results suggest that Raymond Walker has a history of both drug-related and vehicle-related offenses.
+
+MATCH (p:Person) 
+WHERE toLower(p.name) CONTAINS 'raymond' 
+  AND toLower(p.surname) CONTAINS 'walker' 
+MATCH (p)-[:PARTY_TO]->(c:Crime) 
+RETURN p.name, p.surname, 
+       c.type AS crime_type, 
+       c.charge AS charge, 
+       c.last_outcome AS status
+LIMIT 50
+
+
+
+
+Mainly if you also showcase the query it would be helpful to verify and be more transparent.
