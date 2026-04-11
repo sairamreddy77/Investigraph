@@ -52,7 +52,7 @@ The system implements three distinct retrieval strategies to ensure high accurac
 
 | Strategy | Description | Best For |
 |---|---|---|
-| **Text2Cypher** | Translates NL to precise Cypher queries using a schema-aware LLM prompt and 24 few-shot examples. | Counts, aggregations, multi-hop joins, and structured filters (e.g., "How many...", "List all..."). |
+| **Text2Cypher** | Translates NL to precise Cypher queries using a schema-aware LLM prompt and 40 few-shot examples. | Counts, aggregations, multi-hop joins, and structured filters (e.g., "How many...", "List all..."). |
 | **Vector Search** | Semantic search against high-dimensional embeddings of `Crime` nodes stored in Neo4j. | Similarity-based lookups and vague descriptions (e.g., "Tell me about incidents like theft"). |
 | **VectorCypher** | Hybrid retrieval: Perform vector search, then traverse the graph to gather neighborhood context. | Deep investigative context (e.g., "Show people and locations connected to drug crimes"). |
 
@@ -73,7 +73,7 @@ A core utility that ensures the graph is ready for GraphRAG operations:
 
 ### 4.3 Self-Healing Text2Cypher
 A robust execution wrapper that handles:
-- **Syntax Errors**: Automatically feeds the Cypher error back to the LLM for correction (max 2 retries).
+- **Syntax Errors**: Automatically feeds the Cypher error back to the LLM for correction (max 3 retries).
 - **Empty Results**: If a structured query returns no data, the system falls back to a VectorCypher search to find "near matches."
 
 ---
@@ -82,14 +82,14 @@ A robust execution wrapper that handles:
 
 The system operates on the POLE (Person, Object, Location, Event) model:
 
-- **Nodes**: `Person`, `Crime`, `Location`, `Vehicle`, `Object`, `Officer`, `Phone`, `Email`, `PostCode`, `AREA`.
+- **Nodes**: `Person`, `Crime`, `Location`, `Vehicle`, `Object`, `Officer`, `Phone`, `Email`, `PostCode`, `Area`.
 - **Relationships**: `PARTY_TO`, `OCCURRED_AT`, `INVESTIGATED_BY`, `INVOLVED_IN`, `HAS_PHONE`, `KNOWS`, `FAMILY_REL`, etc.
 
 ---
 
 ## 6. Success Criteria
 
-- **Accuracy**: At least 85% correct answers across the 24 standard test cases.
+- **Accuracy**: At least 85% correct answers across the 40 standard test cases.
 - **Performance**: Average end-to-end response time under 3 seconds.
 - **Reliability**: Successful recovery from Cypher syntax errors via self-healing logic.
 - **Groundedness**: Zero hallucinations; all answers must be derived from retrieved graph context.
@@ -111,7 +111,7 @@ The system operates on the POLE (Person, Object, Location, Event) model:
 | 4 LLM calls per question | **1–2 LLM calls** (1 generate + 1 answer) |
 | No retry on failure | **Up to 3 retry attempts** with error context |
 | Narrow schema (2 nodes) | **Full schema** always available |
-| No examples | **24 curated few-shot examples** |
+| No examples | **40 curated few-shot examples** |
 | Rigid intent JSON bottleneck | **Direct question→Cypher generation** |
 
 ---
@@ -132,7 +132,7 @@ The system operates on the POLE (Person, Object, Location, Event) model:
 | `PhoneCall` | `call_date`, `call_time`, `call_duration`, `call_type` | Call records |
 | `Email` | `email_address` | Email addresses |
 | `PostCode` | `code` | Postal codes |
-| `AREA` | `areaCode` | Geographic regions |
+| `Area` | `areaCode` | Geographic regions |
 
 ### Relationships (17)
 
@@ -156,8 +156,8 @@ PhoneCall── CALLER ──────────→ Phone
 PhoneCall── CALLED ──────────→ Phone
 
 Location ── HAS_POSTCODE ───→ PostCode
-Location ── LOCATION_IN_AREA→ AREA
-PostCode ── POSTCODE_IN_AREA→ AREA
+Location ── LOCATION_IN_AREA→ Area
+PostCode ── POSTCODE_IN_AREA→ Area
 ```
 
 ---
@@ -165,36 +165,53 @@ PostCode ── POSTCODE_IN_AREA→ AREA
 ## 3. Project Structure
 
 ```
-project/
-├── .env                              # Credentials
-├── requirements.txt                  # Python dependencies
-│
+backend/
 ├── app/
-│   ├── main.py                       # FastAPI entry point
-│   ├── config.py                     # Env config loader
+│   ├── main.py                       # FastAPI entry point + API endpoints
+│   ├── config.py                     # Pydantic Settings (env config)
 │   ├── database.py                   # Neo4j connection (singleton)
-│   ├── llm.py                        # LLM provider factory
-│   ├── routes/
-│   │   └── query.py                  # POST /ask endpoint
-│   └── models/
-│       └── schemas.py                # Pydantic request/response
+│   ├── llm.py                        # GroqLLM(LLMInterface) wrapper
+│   ├── embedder.py                   # SentenceTransformer embedder singleton
+│   └── models.py                     # Pydantic request/response models
 │
 ├── core/
+│   ├── graphrag_pipeline.py          # GraphRAG pipeline orchestrator
+│   ├── retrievers.py                 # Three retriever strategies + retry wrapper
+│   ├── prompts.py                    # Prompt templates (Text2Cypher + RAG answer)
 │   ├── schema_introspector.py        # Auto-fetch schema from Neo4j
-│   ├── few_shot_examples.yaml        # 24 curated question→Cypher pairs
-│   ├── cypher_generator.py           # Main LLM-based Cypher generation
-│   ├── query_executor.py             # Execute + retry loop
-│   ├── answer_generator.py           # NL answer synthesis
-│   └── pipeline.py                   # 3-step orchestration
+│   ├── few_shot_loader.py            # YAML example loader
+│   ├── case_study_loader.py          # Investigation workflow loader
+│   └── data/
+│       ├── few_shot_examples.yaml    # 40 curated question→Cypher pairs
+│       └── case_studies.yaml         # Investigation case studies
 │
-├── frontend/
-│   ├── index.html                    # Main UI page
-│   ├── style.css                     # Styling
-│   └── app.js                        # Frontend logic
+├── scripts/
+│   └── create_embeddings.py          # Embedding migration (run once)
 │
-└── scripts/
-    ├── introspect_schema.py          # One-off: dump schema to console
-    └── test_queries.py               # Automated test harness
+├── tests/
+│   ├── conftest.py                   # Test fixtures and mocks
+│   ├── test_pipeline.py              # Pipeline + classifier tests
+│   ├── test_retrievers.py            # Retriever tests
+│   ├── test_llm.py                   # GroqLLM wrapper tests
+│   ├── test_api.py                   # API endpoint tests
+│   ├── test_integration.py           # Integration tests
+│   └── test_config.py               # Configuration tests
+│
+├── .env                              # Environment variables
+└── requirements.txt                  # Python dependencies
+
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── ResponsePanel.tsx         # Answer + Cypher + Context display
+│   │   ├── GraphVisualization.tsx    # Interactive graph rendering
+│   │   └── ...                       # Other components
+│   ├── services/
+│   │   └── api.ts                    # API types + service functions
+│   ├── App.tsx                       # Main component
+│   └── main.tsx                      # Entry point
+├── package.json
+└── vite.config.ts
 ```
 
 ---
@@ -319,14 +336,14 @@ examples:
     cypher: |
       MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       RETURN p.name, c.type, a.areaCode
 
   - question: "Find people involved in drug crimes in area WN"
     cypher: |
       MATCH (p:Person)-[:PARTY_TO]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       WHERE toLower(c.type) CONTAINS 'drug'
         AND toLower(a.areaCode) CONTAINS 'wn'
       RETURN p.name, c.type, a.areaCode
@@ -335,7 +352,7 @@ examples:
     cypher: |
       MATCH (v:Vehicle)-[:INVOLVED_IN]->(c:Crime)
             -[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       RETURN v.make, v.model, a.areaCode, c.type
 
   - question: "Find officers investigating drug crimes"
@@ -388,7 +405,7 @@ examples:
   - question: "Which area has the highest number of crimes?"
     cypher: |
       MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)
-            -[:LOCATION_IN_AREA]->(a:AREA)
+            -[:LOCATION_IN_AREA]->(a:Area)
       RETURN a.areaCode, count(c) AS crime_count
       ORDER BY crime_count DESC LIMIT 1
 
