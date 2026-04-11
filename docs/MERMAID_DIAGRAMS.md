@@ -24,27 +24,30 @@ graph TB
 
     subgraph "Backend Layer - FastAPI + Python"
         API[REST API Endpoints]
-        Pipeline[Query Pipeline Orchestrator]
-
-        subgraph "AI Components"
-            CypherGen[Cypher Generator LLM]
-            AnswerGen[Answer Generator LLM]
+        
+        subgraph "GraphRAG Pipeline"
+            Classifier[Question Classifier]
+            T2C[Text2Cypher Retriever]
+            VR[Vector Retriever]
+            VCR[VectorCypher Retriever]
+            Generator[GraphRAG Answer Generator]
         end
 
         subgraph "Core Components"
+            LLM_W[Groq Llama-3.3-70b]
+            Embedder[SentenceTransformer Embedder]
             SchemaIntrospector[Schema Introspector]
-            FewShotLoader[Few-Shot Example Loader]
-            QueryExecutor[Query Executor with Retry]
         end
 
         subgraph "Data Components"
-            Examples[24 Curated Examples YAML]
+            Examples[40 Curated Examples YAML]
             CaseStudies[Investigation Case Studies]
         end
     end
 
     subgraph "Data Layer"
         Neo4j[(Neo4j Graph Database)]
+        VectorIndex[Crime Vector Index]
         POLE[POLE Knowledge Graph]
     end
 
@@ -64,21 +67,28 @@ graph TB
     UI --> ChatSidebar
 
     QueryInput --> API
-    API --> Pipeline
+    API --> Classifier
+    
+    Classifier --> T2C
+    Classifier --> VR
+    Classifier --> VCR
 
-    Pipeline --> CypherGen
-    Pipeline --> QueryExecutor
-    Pipeline --> AnswerGen
-
-    CypherGen --> SchemaIntrospector
-    CypherGen --> FewShotLoader
-    FewShotLoader --> Examples
-
-    QueryExecutor --> Neo4j
+    T2C --> LLM_W
+    T2C --> Neo4j
+    
+    VR --> Embedder
+    Embedder --> Neo4j
+    
+    VCR --> Embedder
+    Embedder --> Neo4j
+    
+    Generator --> LLM_W
+    
+    Neo4j --> VectorIndex
     Neo4j --> POLE
 
-    CypherGen -.-> LLM
-    AnswerGen -.-> LLM
+    T2C -.-> LLM
+    Generator -.-> LLM
     LLM --> Groq
     LLM --> OpenAI
     LLM --> Anthropic
@@ -87,72 +97,67 @@ graph TB
     ChatSidebar --> CaseStudies
 
     Results --> GraphViz
-    QueryExecutor --> Results
+    T2C --> Results
+    VR --> Results
+    VCR --> Results
 
     style User fill:#e1f5ff
     style Browser fill:#e1f5ff
     style UI fill:#bbdefb
-    style Pipeline fill:#fff9c4
-    style CypherGen fill:#c8e6c9
-    style AnswerGen fill:#c8e6c9
+    style Classifier fill:#fff9c4
+    style T2C fill:#c8e6c9
+    style VR fill:#c8e6c9
+    style VCR fill:#c8e6c9
+    style Generator fill:#fff9c4
     style Neo4j fill:#ffccbc
     style LLM fill:#f8bbd0
 ```
 
 ---
 
-## 2. 3-Step Query Pipeline Sequence
+## 2. GraphRAG Pipeline Sequence
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Frontend
     participant API
-    participant Pipeline
-    participant CypherGen
-    participant Executor
+    participant Classifier
+    participant Retriever as Retriever (Selected)
     participant Neo4j
-    participant AnswerGen
+    participant LLM
 
     User->>Frontend: "Find drug crimes in area WN"
     Frontend->>API: POST /api/query
 
-    API->>Pipeline: run(question)
+    API->>Classifier: classify(question)
+    Classifier-->>API: returns strategy (text2cypher/vector/vector_cypher)
 
-    Note over Pipeline: Step 1: Generate Cypher
-    Pipeline->>CypherGen: generate(question)
-    CypherGen->>CypherGen: Load schema context
-    CypherGen->>CypherGen: Load 24 examples
-    CypherGen->>CypherGen: Call LLM
-    CypherGen-->>Pipeline: Cypher query
-
-    Note over Pipeline: Step 2: Execute with Retry
-    Pipeline->>Executor: execute(cypher, question)
-
-    loop Max 3 Attempts
-        Executor->>Neo4j: Run Cypher query
-
-        alt Success with results
-            Neo4j-->>Executor: Results + Graph data
-        else Syntax Error
-            Neo4j-->>Executor: Error message
-            Executor->>CypherGen: Regenerate with error context
-            CypherGen-->>Executor: Corrected query
-        else Empty Results
-            Neo4j-->>Executor: []
-            Executor->>CypherGen: Regenerate with relaxed filters
-            CypherGen-->>Executor: Modified query
+    API->>Retriever: search(question)
+    
+    loop Max 3 Attempts (for Text2Cypher)
+        Retriever->>Neo4j: Execute Search/Query
+        
+        alt Results Found
+            Neo4j-->>Retriever: Context items + Metadata
+        else Syntax Error or Empty
+            alt Attempt < 3
+                Retriever->>Retriever: Self-heal retry / Regenerate
+            else Attempt = 3
+                Retriever-->>API: Empty results
+            end
         end
     end
 
-    Executor-->>Pipeline: Results + metadata
+    alt Empty and Fallback exists
+        API->>Retriever: try fallback retriever
+        Retriever->>Neo4j: Execute fallback search
+    end
 
-    Note over Pipeline: Step 3: Generate Answer
-    Pipeline->>AnswerGen: generate(question, cypher, results)
-    AnswerGen->>AnswerGen: Call LLM
-    AnswerGen-->>Pipeline: Natural language answer
-
-    Pipeline-->>API: Complete response
+    Retriever-->>API: Context + Graph Data
+    API->>LLM: generate answer(question, context)
+    LLM-->>API: natural language answer
+    
     API-->>Frontend: JSON response
     Frontend->>Frontend: Render graph + answer
     Frontend-->>User: Visual results
@@ -240,7 +245,7 @@ graph TB
             PhoneCall[PhoneCall]
             Email[Email]
             PostCode[PostCode]
-            AREA[AREA]
+            Area[Area]
         end
 
         subgraph "Relationships - 17"
@@ -283,9 +288,9 @@ graph TB
     Phone -->|CALLED| PhoneCall
 
     Location -->|HAS_POSTCODE| PostCode
-    Location -->|LOCATION_IN_AREA| AREA
-    PostCode -->|POSTCODE_IN_AREA| AREA
-    Officer -->|OFFICER_IN_AREA| AREA
+    Location -->|LOCATION_IN_AREA| Area
+    PostCode -->|POSTCODE_IN_AREA| Area
+    Officer -->|OFFICER_IN_AREA| Area
 
     style Person fill:#4fc3f7
     style Crime fill:#ef5350
@@ -303,81 +308,87 @@ flowchart TD
     Input --> Validate[Validate Question Length]
     Validate --> APICall[HTTP POST /api/query]
 
-    APICall --> Middleware[Backend Middleware - Logging]
-    Middleware --> PipelineInit[Initialize Pipeline]
+    APICall --> PipelineRun[GraphRAGPipeline.run]
+    
+    subgraph "Intelligent Retrieval"
+        PipelineRun --> Classify[_classify_question]
+        Classify --> Routes{Selected Retriever?}
+        Routes -->|Text2Cypher| T2C[Execute Text2Cypher]
+        Routes -->|Vector| VR[Execute Vector Search]
+        Routes -->|VectorCypher| VCR[Execute VectorCypher]
+        
+        T2C --> CheckResults{Check results?}
+        VR --> CheckResults
+        VCR --> CheckResults
+        
+        CheckResults -->|Empty| Fallback[Try Fallback Retriever]
+        Fallback --> ResultContext
+        CheckResults -->|Data| ResultContext[Gather Context + Metadata]
+    end
 
-    PipelineInit --> Step1{Step 1: Generate Cypher}
-    Step1 --> LoadSchema[Load Cached Schema]
-    Step1 --> LoadExamples[Load 24 Examples]
-    Step1 --> CallLLM1[Call LLM with Context]
-    CallLLM1 --> Cypher[Generated Cypher Query]
+    ResultContext --> Generate[Generate Answer]
+    Generate --> BuildResponse[Build response with retriever_used, cypher, context, graph_data]
 
-    Cypher --> Step2{Step 2: Execute Query}
-    Step2 --> Try[Attempt 1]
-
-    Try --> Neo4jCall[Execute on Neo4j]
-    Neo4jCall --> CheckResult{Check Result}
-
-    CheckResult -->|Success with Data| ExtractGraph[Extract Graph Data]
-    CheckResult -->|Syntax Error| ErrorContext1[Build Error Context]
-    CheckResult -->|Empty Results| ErrorContext2[Build Empty Context]
-
-    ErrorContext1 --> Retry1{Attempt < 3?}
-    ErrorContext2 --> Retry1
-
-    Retry1 -->|Yes| Regenerate[Regenerate Cypher]
-    Regenerate --> Try
-
-    Retry1 -->|No| FailGracefully[Return Error Message]
-
-    ExtractGraph --> Step3{Step 3: Generate Answer}
-    FailGracefully --> Step3
-
-    Step3 --> CallLLM2[Call LLM with Results]
-    CallLLM2 --> NLAnswer[Natural Language Answer]
-
-    NLAnswer --> BuildResponse[Build Response Object]
     BuildResponse --> ReturnJSON[Return JSON to Frontend]
 
     ReturnJSON --> RenderUI[Render UI Components]
     RenderUI --> DisplayAnswer[Display Answer]
     RenderUI --> DisplayGraph[Display Graph]
     RenderUI --> DisplayCypher[Display Cypher]
+    RenderUI --> DisplayMetadata[Display Metadata]
 
     DisplayAnswer --> End([User Sees Results])
     DisplayGraph --> End
     DisplayCypher --> End
+    DisplayMetadata --> End
 
     style Start fill:#e1f5ff
-    style Step1 fill:#fff9c4
-    style Step2 fill:#fff9c4
-    style Step3 fill:#fff9c4
+    style Classify fill:#fff9c4
+    style Routes fill:#fff9c4
+    style Generate fill:#fff9c4
     style End fill:#c8e6c9
 ```
 
 ---
 
-## 7. Module 1: Query Generation Flow
+## 7. Module 1: Question Classification Flow
 
 ```mermaid
-flowchart LR
-    Question[User Question] --> Context[Build Context]
+flowchart TD
+    Question[User Question] --> Heuristic[Heuristic Classifier]
 
-    Context --> Schema[Graph Schema]
-    Context --> Examples[24 Training Examples]
-    Context --> Properties[Known Property Values]
+    subgraph "Classification Logic"
+        Heuristic --> Structured{Structured Patterns?}
+        Structured -->|Yes| T2C[Route to Text2Cypher]
+        Structured -->|No| Area{Area/Filter Scoring?}
+        
+        Area -->|High Score| T2C
+        Area -->|Low Score| Person{Person Patterns?}
+        
+        Person -->|Match| VCR[Route to VectorCypher]
+        Person -->|No Match| Semantic{Semantic Patterns?}
+        
+        Semantic -->|Match| VR[Route to Vector]
+        Semantic -->|No Match| StartsWith{Starts-with Check?}
+        
+        StartsWith -->|Match| T2C
+        StartsWith -->|Default| VCR
+    end
 
-    Schema --> Prompt[LLM Prompt]
-    Examples --> Prompt
-    Properties --> Prompt
-    Question --> Prompt
+    subgraph "Context Sources"
+        Schema[Graph Schema]
+        Examples[40 Curated Examples]
+    end
 
-    Prompt --> LLM[Large Language Model]
-    LLM --> Cypher[Cypher Query]
+    T2C --> Search[Execute Retrieval Strategy]
+    VR --> Search
+    VCR --> Search
 
     style Question fill:#e1f5ff
-    style LLM fill:#fff9c4
-    style Cypher fill:#c8e6c9
+    style Heuristic fill:#fff9c4
+    style T2C fill:#c8e6c9
+    style VR fill:#c8e6c9
+    style VCR fill:#c8e6c9
 ```
 
 ---
@@ -504,7 +515,7 @@ graph TB
     subgraph "Backend Stack"
         FastAPI[FastAPI - Web Framework]
         Pydantic[Pydantic - Data Validation]
-        LangChain[LangChain - LLM Orchestration]
+        NeoGraphRAG[neo4j-graphrag - RAG Orchestration]
         Neo4jDriver[Neo4j Python Driver]
         Python[Python 3.10+]
     end
@@ -520,11 +531,11 @@ graph TB
     FastAPI --> AsyncIO
     FastAPI --> AutoDocs
     Pydantic --> DataValidation
-    LangChain --> LLMAbstraction
+    NeoGraphRAG --> LLMAbstraction
     Neo4jDriver --> GraphAccess
 
     style FastAPI fill:#009688
-    style LangChain fill:#1c3c3c
+    style NeoGraphRAG fill:#1c3c3c
     style Neo4jDriver fill:#008cc1
 ```
 
@@ -576,47 +587,41 @@ graph TB
 sequenceDiagram
     actor Investigator
     participant UI as Frontend UI
-    participant M1 as Module 1: Query Gen
-    participant M2 as Module 2: Execution
-    participant M3 as Module 3: Answer Gen
+    participant M1 as Module 1: Classification
+    participant M2 as Module 2: Retrieval
+    participant M3 as Module 3: Generation
     participant M4 as Module 4: Visualization
-    participant DB as Neo4j Database
+    participant DB as Neo4j + Vector Index
 
     Investigator->>UI: "Find drug crimes in WN"
 
     UI->>M1: question
-    Note over M1: Load schema + examples
-    M1->>M1: Build LLM context
-    M1->>M1: Generate Cypher
-    M1-->>UI: Cypher query
+    Note over M1: Heuristic classification
+    M1->>M1: Check keywords, filters, patterns
+    M1-->>UI: Route to Text2Cypher (area filter detected)
 
-    UI->>M2: Execute query
-    M2->>DB: Run Cypher
-
+    UI->>M2: Text2Cypher.search(question)
+    M2->>DB: Generate Cypher + Execute
+    
     alt Syntax Error
         DB-->>M2: Error message
-        M2->>M1: Regenerate with error
-        M1-->>M2: Corrected query
-        M2->>DB: Retry
+        M2->>M2: Self-heal retry
+        M2->>DB: Execute corrected query
     end
 
-    DB-->>M2: Results + Graph data
-    M2-->>UI: Execution results
+    DB-->>M2: Context items + metadata
+    M2-->>UI: Retrieval results
 
-    UI->>M3: Generate answer
-    Note over M3: Summarize results
-    M3->>M3: Call LLM
-    M3-->>UI: Natural language answer
+    UI->>M3: Generate answer from context
+    Note over M3: Groq Llama-3.3-70b
+    M3->>M3: Build grounded prompt
+    M3-->>UI: Grounded NL answer
 
-    UI->>M4: Render visualization
-    M4->>M4: Parse nodes & edges
-    M4->>M4: Apply graph layout
+    UI->>M4: Extract graph data
+    M4->>M4: Parse entities & relationships
     M4-->>UI: Interactive graph
 
-    UI-->>Investigator: Display answer + graph
-
-    Investigator->>M4: Click node to inspect
-    M4-->>Investigator: Show node details
+    UI-->>Investigator: Answer + Graph + Cypher + Metadata
 ```
 
 ---

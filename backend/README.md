@@ -64,7 +64,7 @@ uvicorn app.main:app --reload --port 8000
 
 ## API Documentation
 
-### `POST /api/ask`
+### `POST /api/query`
 Submit a question and receive a grounded answer + metadata.
 
 **Response Fields:**

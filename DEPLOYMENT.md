@@ -763,7 +763,7 @@ docker logs -f investigraph-backend
 
 ### Key Metrics to Monitor
 
-1. **Response Time**: Average time for `/api/ask` requests
+1. **Response Time**: Average time for `/api/query` requests
 2. **Error Rate**: 4xx/5xx response codes
 3. **LLM Calls**: Number of successful/failed LLM invocations
 4. **Retry Rate**: Percentage of queries requiring retries
