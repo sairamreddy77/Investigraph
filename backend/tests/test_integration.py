@@ -91,7 +91,8 @@ def test_full_pipeline_text2cypher_flow():
                 )
             ]
         )
-        mocks["rag_text2cypher"].search.return_value = Mock(answer="There are 42 crimes.")
+        # Mock the LLM's direct invoke call used in the text2cypher answer path
+        mocks["llm"].invoke.return_value = Mock(content="There are 42 crimes.")
 
         response = pipeline.run("How many crimes are recorded?")
 

@@ -70,6 +70,21 @@ def test_pipeline_classifies_filter_heavy_question():
         "Find all crimes under investigation"
     ) == "text2cypher"
 
+    # Person-specific query with "involved in" → text2cypher
+    assert pipeline._classify_question(
+        "What crimes is Raymond Walker involved in?"
+    ) == "text2cypher"
+
+    # "What evidence" + "associated with" → text2cypher
+    assert pipeline._classify_question(
+        "What evidence is associated with crime 2dec74f?"
+    ) == "text2cypher"
+
+    # Semantic "what do you know" should still go to vector_cypher
+    assert pipeline._classify_question(
+        "What do you know about drug crimes?"
+    ) == "vector_cypher"
+
 
 def test_pipeline_fallback_mapping():
     pipeline = _build_pipeline()
@@ -90,9 +105,10 @@ def test_pipeline_run_returns_enriched_response():
     )
     pipeline._text2cypher = Mock()
     pipeline._text2cypher.search.return_value = Mock(items=[result_item])
-    pipeline._rag_instances = {
-        "text2cypher": Mock(search=Mock(return_value=Mock(answer="Found 42 crimes.")))
-    }
+    # Mock the LLM used for answer generation in the text2cypher path
+    mock_llm = Mock()
+    mock_llm.invoke.return_value = Mock(content="Found 42 crimes.")
+    pipeline._llm = mock_llm
 
     response = pipeline.run("How many crimes?")
 
