@@ -109,7 +109,7 @@ sequenceDiagram
     participant RAG as GraphRAG Generator
 
     User->>Frontend: "Find drug crimes in area WN"
-    Frontend->>API: POST /api/ask
+    Frontend->>API: POST /api/query
 
     API->>Classifier: classify_question(question)
     Note over Classifier: Heuristic-based routing
@@ -177,60 +177,51 @@ sequenceDiagram
 
 ## Detailed Component Architecture
 
-### 3-Step Query Pipeline
+### GraphRAG Pipeline Flow
 
-The system follows a three-step pipeline for processing natural language queries:
+The system follows a multi-strategy retrieval flow for processing natural language queries:
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Frontend
     participant API
-    participant Pipeline
-    participant CypherGen
-    participant Executor
+    participant Pipeline as GraphRAGPipeline
+    participant Classifier as _classify_question
+    participant Retriever as Retriever (T2C/VR/VCR)
     participant Neo4j
-    participant AnswerGen
+    participant LLM as GroqLLM
 
     User->>Frontend: "Find drug crimes in area WN"
     Frontend->>API: POST /api/query
 
     API->>Pipeline: run(question)
+    Pipeline->>Classifier: classify_question(question)
+    Classifier-->>Pipeline: Selected strategy (text2cypher | vector | vector_cypher)
 
-    Note over Pipeline: Step 1: Generate Cypher
-    Pipeline->>CypherGen: generate(question)
-    CypherGen->>CypherGen: Load schema context
-    CypherGen->>CypherGen: Load 24 examples
-    CypherGen->>CypherGen: Call LLM
-    CypherGen-->>Pipeline: Cypher query
-
-    Note over Pipeline: Step 2: Execute with Retry
-    Pipeline->>Executor: execute(cypher, question)
-
-    loop Max 3 Attempts
-        Executor->>Neo4j: Run Cypher query
-
-        alt Success with results
-            Neo4j-->>Executor: Results + Graph data
-        else Syntax Error
-            Neo4j-->>Executor: Error message
-            Executor->>CypherGen: Regenerate with error context
-            CypherGen-->>Executor: Corrected query
-        else Empty Results
-            Neo4j-->>Executor: []
-            Executor->>CypherGen: Regenerate with relaxed filters
-            CypherGen-->>Executor: Modified query
-        end
+    Note over Pipeline: Execute selected retriever
+    Pipeline->>Retriever: search(question)
+    
+    alt Strategy: text2cypher
+        Retriever->>Neo4j: Execute Cypher with retry
+        Neo4j-->>Retriever: context + graph_data
+        Retriever->>LLM: invoke(prompt with context)
+        LLM-->>Retriever: Natural language answer
+    else Strategy: vector | vector_cypher
+        Retriever->>Neo4j: GraphRAG.search(query_text)
+        Neo4j-->>Retriever: answer + context + graph_data
     end
 
-    Executor-->>Pipeline: Results + metadata
+    alt Results Empty?
+        Retriever-->>Pipeline: []
+        Note over Pipeline: Attempt Fallback Retriever
+        Pipeline->>Retriever: fallback_search(question)
+        Retriever-->>Pipeline: final_results
+    else Results Found
+        Retriever-->>Pipeline: results
+    end
 
-    Note over Pipeline: Step 3: Generate Answer
-    Pipeline->>AnswerGen: generate(question, cypher, results)
-    AnswerGen->>AnswerGen: Call LLM
-    AnswerGen-->>Pipeline: Natural language answer
-
-    Pipeline-->>API: Complete response
+    Pipeline-->>API: Complete response (answer, context, graph_data)
     API-->>Frontend: JSON response
     Frontend->>Frontend: Render graph + answer
     Frontend-->>User: Visual results
@@ -291,7 +282,7 @@ graph TB
     subgraph "Backend Stack"
         FastAPI[FastAPI - Web Framework]
         Pydantic[Pydantic - Data Validation]
-        LangChain[LangChain - LLM Orchestration]
+        NeoGraphRAG[neo4j-graphrag - RAG Orchestration]
         Neo4jDriver[Neo4j Python Driver]
         Python[Python 3.10+]
     end
@@ -307,11 +298,11 @@ graph TB
     FastAPI --> AsyncIO
     FastAPI --> AutoDocs
     Pydantic --> DataValidation
-    LangChain --> LLMAbstraction
+    NeoGraphRAG --> LLMAbstraction
     Neo4jDriver --> GraphAccess
 
     style FastAPI fill:#009688
-    style LangChain fill:#1c3c3c
+    style NeoGraphRAG fill:#1c3c3c
     style Neo4jDriver fill:#008cc1
 ```
 
@@ -328,20 +319,18 @@ graph TB
 
 | Module | Responsibility | Key Features |
 |--------|---------------|--------------|
-| `pipeline.py` | Orchestrates 3-step query flow | Coordinates all components |
+| `graphrag_pipeline.py` | Orchestrates multi-strategy retrieval | Classification, retriever execution, fallback, answer generation |
+| `retrievers.py` | Three retriever strategies | Text2CypherWithRetry, VectorRetriever, VectorCypherRetriever |
 | `schema_introspector.py` | Extracts Neo4j schema | Caches schema, detects labels/relationships |
-| `few_shot_loader.py` | Loads training examples | 24 curated query patterns |
-| `cypher_generator.py` | NL → Cypher translation | LLM-based with context |
-| `query_executor.py` | Query execution + retry | Self-healing with 3 attempts |
-| `answer_generator.py` | Results → NL answer | Human-readable summaries |
+| `few_shot_loader.py` | Loads training examples | 40 curated query patterns |
+| `prompts.py` | Prompt templates | Text2Cypher generation rules, RAG answer template |
 | `case_study_loader.py` | Investigation workflows | Multi-step investigation patterns |
 
-**3. LLM Integration (LangChain)**
-- Abstracted interface for multiple providers
-- Prompt template management
-- Token usage tracking
-- Error handling and retries
-- Provider fallback support
+**3. LLM Integration (GroqLLM)**
+- Custom `GroqLLM(LLMInterface)` wrapper for neo4j-graphrag compatibility
+- Uses Groq Llama-3.3-70b-versatile for all LLM calls
+- Implements `invoke()` and `ainvoke()` methods per neo4j-graphrag contract
+- Temperature=0, max_tokens=4096
 
 ### Database Layer
 
@@ -359,7 +348,7 @@ graph TB
             PhoneCall[PhoneCall]
             Email[Email]
             PostCode[PostCode]
-            AREA[AREA]
+            Area[Area]
         end
 
         subgraph "Relationships - 17"
@@ -402,9 +391,9 @@ graph TB
     Phone -->|CALLED| PhoneCall
 
     Location -->|HAS_POSTCODE| PostCode
-    Location -->|LOCATION_IN_AREA| AREA
-    PostCode -->|POSTCODE_IN_AREA| AREA
-    Officer -->|OFFICER_IN_AREA| AREA
+    Location -->|LOCATION_IN_AREA| Area
+    PostCode -->|POSTCODE_IN_AREA| Area
+    Officer -->|OFFICER_IN_AREA| Area
 
     style Person fill:#4fc3f7
     style Crime fill:#ef5350
@@ -421,58 +410,41 @@ graph TB
 ```mermaid
 flowchart TD
     Start([User Asks Question]) --> Input[Frontend: Query Input]
-    Input --> Validate[Validate Question Length]
-    Validate --> APICall[HTTP POST /api/query]
+    Input --> APICall[HTTP POST /api/query]
 
-    APICall --> Middleware[Backend Middleware - Logging]
-    Middleware --> PipelineInit[Initialize Pipeline]
+    APICall --> PipelineInit[GraphRAGPipeline.run]
+    PipelineInit --> Classify[_classify_question]
+    
+    Classify --> Route{Select Strategy}
+    Route -->|text2cypher| T2C[Execute Text2CypherRetrieverWithRetry]
+    Route -->|vector| VR[Execute VectorRetriever]
+    Route -->|vector_cypher| VCR[Execute VectorCypherRetriever]
 
-    PipelineInit --> Step1{Step 1: Generate Cypher}
-    Step1 --> LoadSchema[Load Cached Schema]
-    Step1 --> LoadExamples[Load 24 Examples]
-    Step1 --> CallLLM1[Call LLM with Context]
-    CallLLM1 --> Cypher[Generated Cypher Query]
+    T2C --> Check{Results Found?}
+    VR --> Check
+    VCR --> Check
 
-    Cypher --> Step2{Step 2: Execute Query}
-    Step2 --> Try[Attempt 1]
+    Check -->|No| Fallback[Try Fallback Retriever]
+    Check -->|Yes| Generate[Generate Final Answer]
+    
+    Fallback --> Generate
 
-    Try --> Neo4jCall[Execute on Neo4j]
-    Neo4jCall --> CheckResult{Check Result}
-
-    CheckResult -->|Success with Data| ExtractGraph[Extract Graph Data]
-    CheckResult -->|Syntax Error| ErrorContext1[Build Error Context]
-    CheckResult -->|Empty Results| ErrorContext2[Build Empty Context]
-
-    ErrorContext1 --> Retry1{Attempt < 3?}
-    ErrorContext2 --> Retry1
-
-    Retry1 -->|Yes| Regenerate[Regenerate Cypher]
-    Regenerate --> Try
-
-    Retry1 -->|No| FailGracefully[Return Error Message]
-
-    ExtractGraph --> Step3{Step 3: Generate Answer}
-    FailGracefully --> Step3
-
-    Step3 --> CallLLM2[Call LLM with Results]
-    CallLLM2 --> NLAnswer[Natural Language Answer]
-
-    NLAnswer --> BuildResponse[Build Response Object]
+    Generate --> BuildResponse[Build Response with Context + Graph Data]
     BuildResponse --> ReturnJSON[Return JSON to Frontend]
 
     ReturnJSON --> RenderUI[Render UI Components]
     RenderUI --> DisplayAnswer[Display Answer]
-    RenderUI --> DisplayGraph[Display Graph]
-    RenderUI --> DisplayCypher[Display Cypher]
+    RenderUI --> DisplayGraph[Display Graph Visualization]
+    RenderUI --> DisplayMetadata[Display Retriever Metadata]
 
     DisplayAnswer --> End([User Sees Results])
     DisplayGraph --> End
-    DisplayCypher --> End
+    DisplayMetadata --> End
 
     style Start fill:#e1f5ff
-    style Step1 fill:#fff9c4
-    style Step2 fill:#fff9c4
-    style Step3 fill:#fff9c4
+    style Classify fill:#fff9c4
+    style Route fill:#fff9c4
+    style Check fill:#fff9c4
     style End fill:#c8e6c9
 ```
 
@@ -669,11 +641,13 @@ graph LR
 
 | Component | Interacts With | Purpose |
 |-----------|---------------|---------|
-| **Pipeline** | CypherGen, QueryExecutor, AnswerGen | Orchestrates 3-step flow |
-| **CypherGen** | SchemaIntrospector, FewShotLoader, LLM | Generates Cypher from NL |
-| **QueryExecutor** | Neo4j, CypherGen | Executes queries with retry |
-| **AnswerGen** | LLM | Converts results to NL |
+| **GraphRAGPipeline** | Retrievers, GroqLLM, Embedder | Orchestrates classification → retrieval → answer |
+| **Text2CypherRetrieverWithRetry** | Neo4j, GroqLLM, SchemaIntrospector | Generates and executes Cypher with self-healing retry |
+| **VectorRetriever** | Neo4j Vector Index, Embedder | Semantic search on Crime embeddings |
+| **VectorCypherRetriever** | Neo4j Vector Index, Embedder, Neo4j Graph | Hybrid: vector search + graph traversal |
+| **GroqLLM** | Groq API | LLM inference (Llama-3.3-70b) |
+| **Embedder** | SentenceTransformers | all-MiniLM-L6-v2 (384-dim) embeddings |
 | **SchemaIntrospector** | Neo4j | Extracts and caches schema |
-| **FewShotLoader** | YAML files | Loads training examples |
+| **FewShotLoader** | YAML files | Loads 40 training examples |
 | **Frontend** | Backend API | User interaction layer |
-| **Backend API** | Pipeline | Request/response handling |
+| **Backend API** | GraphRAGPipeline | Request/response handling |

@@ -168,40 +168,51 @@ Answers are synthesized by the Groq Llama-3.3-70b model, grounded strictly in th
 investigraph/
 ├── backend/                      # FastAPI backend
 │   ├── app/
-│   │   ├── main.py              # API entry point
-│   │   ├── config.py            # Environment config
-│   │   ├── database.py          # Neo4j connection
-│   │   ├── llm.py               # LLM provider factory
-│   │   └── models.py            # Pydantic models
+│   │   ├── main.py              # API entry point + endpoints
+│   │   ├── config.py            # Pydantic Settings (env config)
+│   │   ├── database.py          # Neo4j connection (singleton)
+│   │   ├── llm.py               # GroqLLM(LLMInterface) wrapper
+│   │   ├── embedder.py          # SentenceTransformer embedder
+│   │   └── models.py            # Pydantic request/response models
 │   ├── core/
+│   │   ├── graphrag_pipeline.py # GraphRAG pipeline orchestrator
+│   │   ├── retrievers.py        # 3 retriever strategies + retry
+│   │   ├── prompts.py           # Prompt templates
 │   │   ├── schema_introspector.py   # Schema auto-detection
-│   │   ├── few_shot_loader.py       # Load examples
-│   │   ├── cypher_generator.py      # LLM query generation
-│   │   ├── query_executor.py        # Execute with retry
-│   │   ├── answer_generator.py      # NL answer generation
-│   │   ├── pipeline.py              # Pipeline orchestration
-│   │   └── few_shot_examples.yaml   # 24 curated examples
+│   │   ├── few_shot_loader.py       # YAML example loader
+│   │   └── case_study_loader.py     # Investigation workflows
+│   ├── data/
+│   │   ├── few_shot_examples.yaml   # 40 curated examples
+│   │   └── case_studies.yaml        # Investigation case studies
+│   ├── scripts/
+│   │   └── create_embeddings.py     # Embedding migration (run once)
 │   ├── tests/
-│   │   ├── test_*.py                # Unit tests
+│   │   ├── conftest.py              # Test fixtures and mocks
+│   │   ├── test_pipeline.py         # Pipeline + classifier tests
+│   │   ├── test_retrievers.py       # Retriever tests
+│   │   ├── test_llm.py             # GroqLLM wrapper tests
+│   │   ├── test_api.py             # API endpoint tests
 │   │   ├── test_integration.py      # Integration tests
-│   │   └── manual_test_checklist.md # Manual test scenarios
+│   │   └── test_config.py          # Configuration tests
 │   ├── .env                     # Environment variables
-│   ├── requirements.txt         # Python dependencies
-│   └── README.md                # Backend docs
+│   └── requirements.txt         # Python dependencies
 │
-├── frontend/                    # React frontend
+├── frontend/                    # React + TypeScript frontend
 │   ├── src/
 │   │   ├── components/          # React components
-│   │   ├── services/            # API client
+│   │   ├── services/api.ts      # API types + service functions
 │   │   ├── App.tsx              # Main component
 │   │   └── main.tsx             # Entry point
 │   ├── package.json             # Node dependencies
-│   ├── vite.config.ts           # Vite configuration
-│   └── README.md                # Frontend docs
+│   └── vite.config.ts           # Vite configuration
 │
-├── docker-compose.yml           # Docker orchestration
-├── Dockerfile                   # Backend Docker image
-├── .dockerignore                # Docker ignore patterns
+├── docs/                        # Documentation
+│   ├── ARCHITECTURE.md          # System architecture
+│   ├── METHODOLOGY.md           # 4-module methodology
+│   ├── EXPLAINER.md             # Teammate-friendly system explainer
+│   ├── DATASET.md               # POLE data model + schema
+│   └── ...                      # Presentation guides, diagrams
+│
 ├── DEPLOYMENT.md                # Deployment guide
 ├── implementation_plan.md       # Technical specification
 └── README.md                    # This file
@@ -218,14 +229,12 @@ investigraph/
 | `NEO4J_URI` | Yes | Neo4j connection URI |
 | `NEO4J_USERNAME` | Yes | Neo4j username |
 | `NEO4J_PASSWORD` | Yes | Neo4j password |
-| `NEO4J_DATABASE` | No | Database name (default: neo4j) |
-| `GROQ_API_KEY` | No* | Groq API key |
-| `OPENAI_API_KEY` | No* | OpenAI API key |
-| `ANTHROPIC_API_KEY` | No* | Anthropic API key |
-| `GOOGLE_API_KEY` | No* | Google API key |
-| `LOG_LEVEL` | No | Logging level (default: INFO) |
-
-*At least one LLM API key is required
+| `NEO4J_DATABASE` | No | Database name (default: `pole`) |
+| `GROQ_API_KEY` | Yes | Groq API key for Llama-3.3-70b |
+| `EMBEDDING_MODEL` | No | SentenceTransformer model (default: `all-MiniLM-L6-v2`) |
+| `VECTOR_INDEX_NAME` | No | Neo4j vector index name (default: `crime_vector_index`) |
+| `GRAPHRAG_TOP_K` | No | Number of results for vector retrieval (default: `5`) |
+| `LOG_LEVEL` | No | Logging level (default: `INFO`) |
 
 ### Frontend Configuration
 
@@ -250,7 +259,7 @@ Typical response times (on successful first attempt):
 - Schema cached at startup (not per-request)
 - Neo4j connection pooling
 - Groq for fastest responses (< 500ms LLM calls)
-- Claude/GPT-4o for highest accuracy
+- Embedder loaded once as singleton
 
 ### Scaling
 
@@ -310,7 +319,9 @@ MIT License - see LICENSE file for details.
 Built with:
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
 - [Neo4j](https://neo4j.com/) - Graph database platform
-- [LangChain](https://www.langchain.com/) - LLM orchestration framework
+- [neo4j-graphrag](https://github.com/neo4j/neo4j-graphrag-python) - GraphRAG orchestration library
+- [Groq](https://groq.com/) - High-speed LLM inference (Llama-3.3-70b)
+- [SentenceTransformers](https://www.sbert.net/) - Local text embeddings
 - [React](https://react.dev/) - Frontend library
 - [vis-network](https://visjs.org/) - Graph visualization library
 

@@ -121,7 +121,7 @@ sequenceDiagram
 
 ### Example Training Patterns
 
-The system is trained on 24 diverse query patterns:
+The system is trained on 40 diverse query patterns:
 
 | Category | Example Question | Pattern Type |
 |----------|-----------------|--------------|
@@ -136,7 +136,7 @@ The system is trained on 24 diverse query patterns:
 
 **Step 1: Schema Context**
 ```
-Node Labels (11): Person, Crime, Location, Vehicle, Officer, Phone, PhoneCall, Email, Object, PostCode, AREA
+Node Labels (11): Person, Crime, Location, Vehicle, Officer, Phone, PhoneCall, Email, Object, PostCode, Area
 
 Relationships (17): PARTY_TO, OCCURRED_AT, INVESTIGATED_BY, HAS_PHONE, KNOWS, FAMILY_REL, ...
 
@@ -152,7 +152,7 @@ Cypher: MATCH (p:Person)-[:PARTY_TO]->(c:Crime) RETURN p.name, c.type
 
 Example 2:
 Question: "Which area has most crimes?"
-Cypher: MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:AREA)
+Cypher: MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:Area)
         RETURN a.name, count(c) AS crime_count ORDER BY crime_count DESC
 ```
 
@@ -170,15 +170,15 @@ Areas: BL1, WN, OL, M
 
 ---
 
-## Module 2: Intelligent Query Execution with Self-Healing
+## Module 2: Multi-Strategy Retrieval with Self-Healing
 
 ### Purpose
-Execute generated queries against Neo4j with automatic error correction and retry logic.
+Execute generated queries against Neo4j with automatic error correction, retry logic, and fallback strategies.
 
 ### Components
-- **Query Executor**: Manages query execution lifecycle
-- **Neo4j Driver**: Handles database connections with connection pooling
-- **Retry Coordinator**: Implements intelligent retry strategy
+- **Text2CypherRetrieverWithRetry**: Translates NL to Cypher with built-in self-healing logic.
+- **VectorRetriever**: Performs semantic search on crime embeddings using `crime_vector_index`.
+- **VectorCypherRetriever**: Combines semantic search with 2-hop graph traversal for enriched context.
 
 ### How It Works
 
@@ -280,7 +280,7 @@ graph_data = {
     "nodes": [
         {"id": "p1", "label": "John Smith", "group": "Person"},
         {"id": "c1", "label": "Drug Offence", "group": "Crime"},
-        {"id": "l1", "label": "WN Area", "group": "AREA"}
+        {"id": "l1", "label": "WN Area", "group": "Area"}
     ],
     "edges": [
         {"from": "p1", "to": "c1", "label": "PARTY_TO"},
@@ -490,47 +490,40 @@ Step 4: Detect criminal networks
 sequenceDiagram
     actor Investigator
     participant UI as Frontend UI
-    participant M1 as Module 1: Query Gen
-    participant M2 as Module 2: Execution
-    participant M3 as Module 3: Answer Gen
+    participant M1 as Module 1: Question Classifier
+    participant M2 as Module 2: Selected Retriever
+    participant M3 as Module 3: Answer Generation
     participant M4 as Module 4: Visualization
     participant DB as Neo4j Database
 
-    Investigator->>UI: "Find drug crimes in WN"
+    Investigator->>UI: "Explain crimes in area WN"
 
     UI->>M1: question
-    Note over M1: Load schema + examples
-    M1->>M1: Build LLM context
-    M1->>M1: Generate Cypher
-    M1-->>UI: Cypher query
+    Note over M1: Routes to VectorCypher
+    M1-->>UI: Strategy selected
 
-    UI->>M2: Execute query
-    M2->>DB: Run Cypher
-
-    alt Syntax Error
+    UI->>M2: Execute Selected Strategy
+    Note over M2: Text2Cypher (with retry), Vector, or VectorCypher
+    M2->>DB: Search/Query
+    
+    alt Text2Cypher Error
         DB-->>M2: Error message
-        M2->>M1: Regenerate with error
-        M1-->>M2: Corrected query
-        M2->>DB: Retry
+        M2->>M2: Self-heal & Retry
+        M2->>DB: Corrected Query
     end
+    
+    DB-->>M2: Results + Context Items
+    M2-->>UI: Context + Metadata
 
-    DB-->>M2: Results + Graph data
-    M2-->>UI: Execution results
+    UI->>M3: Generate Answer
+    Note over M3: LLM.invoke or GraphRAG handles it
+    M3-->>UI: Grounded NL Answer
 
-    UI->>M3: Generate answer
-    Note over M3: Summarize results
-    M3->>M3: Call LLM
-    M3-->>UI: Natural language answer
+    UI->>M4: Render Visualization
+    M4->>M4: Parse graph data
+    M4-->>UI: Answer + Graph + Metadata
 
-    UI->>M4: Render visualization
-    M4->>M4: Parse nodes & edges
-    M4->>M4: Apply graph layout
-    M4-->>UI: Interactive graph
-
-    UI-->>Investigator: Display answer + graph
-
-    Investigator->>M4: Click node to inspect
-    M4-->>Investigator: Show node details
+    UI-->>Investigator: Display Findings
 ```
 
 ---
@@ -540,7 +533,7 @@ sequenceDiagram
 ### 1. Context-Aware Generation
 Every query generation includes:
 - Full graph schema knowledge
-- 24 diverse training examples
+- 40 diverse training examples
 - Known property values
 - Previous error context (on retry)
 

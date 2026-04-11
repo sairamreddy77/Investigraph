@@ -614,18 +614,16 @@ Follow [Railway Backend Deployment](#backend-deployment-2) above.
 
 | Variable | Required | Default | Description | Example |
 |----------|----------|---------|-------------|---------|
-| `NEO4J_URI` | Yes | - | Neo4j connection URI | `neo4j+s://xxx.databases.neo4j.io` |
+| `NEO4J_URI` | Yes | - | Neo4j connection URI | `neo4j://127.0.0.1:7687` |
 | `NEO4J_USERNAME` | Yes | - | Neo4j username | `neo4j` |
 | `NEO4J_PASSWORD` | Yes | - | Neo4j password | `your_secure_password` |
-| `NEO4J_DATABASE` | No | `neo4j` | Database name | `pole` |
-| `GROQ_API_KEY` | No* | - | Groq API key | `gsk_xxxxx` |
-| `OPENAI_API_KEY` | No* | - | OpenAI API key | `sk-xxxxx` |
-| `ANTHROPIC_API_KEY` | No* | - | Anthropic API key | `sk-ant-xxxxx` |
-| `GOOGLE_API_KEY` | No* | - | Google API key | `AIzaSyxxxxx` |
+| `NEO4J_DATABASE` | No | `pole` | Database name | `pole` |
+| `GROQ_API_KEY` | Yes | - | Groq API key | `gsk_xxxxx` |
+| `EMBEDDING_MODEL` | No | `all-MiniLM-L6-v2` | SentenceTransformer model | `all-MiniLM-L6-v2` |
+| `VECTOR_INDEX_NAME` | No | `crime_vector_index` | Neo4j vector index name | `crime_vector_index` |
+| `GRAPHRAG_TOP_K` | No | `5` | Vector retrieval result count | `5` |
 | `LOG_LEVEL` | No | `INFO` | Logging level | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
 | `PORT` | No | `8000` | Server port | Auto-set by cloud platforms |
-
-*At least one LLM API key is required
 
 ### Frontend Environment Variables
 
@@ -659,7 +657,7 @@ Follow [Railway Backend Deployment](#backend-deployment-2) above.
 
 ### Performance
 
-1. **Use Production LLM**: Claude Sonnet 4 or GPT-4o for best accuracy
+1. **Use Production LLM**: Groq Llama-3.3-70b-versatile provides fast, high-quality responses
 2. **Neo4j Indexes**: Create indexes on frequently queried properties:
    ```cypher
    CREATE INDEX person_name FOR (p:Person) ON (p.name, p.surname);
@@ -729,10 +727,10 @@ logging.basicConfig(
 {
   "status": "healthy",
   "neo4j_connected": true,
-  "llm_provider": "groq",
+  "llm_available": true,
+  "pipeline_initialized": true,
   "schema_loaded": true,
-  "examples_loaded": true,
-  "examples_count": 24
+  "examples_count": 40
 }
 ```
 

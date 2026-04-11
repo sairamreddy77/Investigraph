@@ -33,9 +33,9 @@ This documentation package contains everything you need for your presentation an
 
 ### 3. [METHODOLOGY.md](METHODOLOGY.md)
 **4-module system methodology**
-- Module 1: Query Generation (NL → Cypher)
-- Module 2: Intelligent Execution (Self-healing)
-- Module 3: Answer Generation (Results → NL)
+- Module 1: Intelligent Query Routing (Heuristic Classification)
+- Module 2: Multi-Strategy Retrieval (Text2Cypher, Vector, VectorCypher)
+- Module 3: GraphRAG Answer Generation (Context-Grounded)
 - Module 4: Visualization & UI
 
 **Best for**: Explaining how the system works, methodology slides, technical walkthrough
@@ -47,7 +47,7 @@ This documentation package contains everything you need for your presentation an
 - POLE data model explained
 - Neo4j schema (11 node types, 17 relationships)
 - Example queries and patterns
-- Training data (24 few-shot examples)
+- Training data (40 few-shot examples)
 - Investigation case studies
 
 **Best for**: Data model slides, schema explanation, example query demonstrations
@@ -115,8 +115,8 @@ Memorize these from [PRESENTATION_GUIDE.md](PRESENTATION_GUIDE.md):
 - Response times: 1-3 seconds average
 - Success rate: 95%+ with retry
 - Node types: 11, Relationship types: 17
-- Training examples: 24 curated patterns
-- LLM providers: 4 (Groq, OpenAI, Anthropic, Google)
+- Training examples: 40 curated patterns
+- LLM: Groq Llama-3.3-70b-versatile
 
 ### Step 5: Prepare Demo (15 minutes)
 Test these example queries on your system:
@@ -133,18 +133,18 @@ Test these example queries on your system:
 - **Average Response Time**: 1-3 seconds
 - **Query Success Rate**: 95%+ (with self-healing retry)
 - **First Attempt Accuracy**: 85-95%
-- **Supported LLM Providers**: 4 (Groq, OpenAI, Anthropic, Google)
+- **Supported LLM**: Groq Llama-3.3-70b-versatile
 
 ### Data Scale
 - **Node Types**: 11 (Person, Crime, Location, Vehicle, Officer, etc.)
 - **Relationship Types**: 17 (PARTY_TO, KNOWS, OCCURRED_AT, etc.)
-- **Training Examples**: 24 curated query patterns
+- **Training Examples**: 40 curated query patterns
 - **Typical Dataset Size**: 1,500-3,500 nodes, 3,000-6,000 relationships
 
 ### Technology
 - **Frontend**: React 18 + TypeScript + Vite + vis-network
-- **Backend**: FastAPI + Python + LangChain
-- **Database**: Neo4j with POLE schema
+- **Backend**: FastAPI + Python + neo4j-graphrag
+- **Database**: Neo4j 5.23+ with POLE schema
 - **Testing**: pytest + 55+ manual test scenarios
 
 ---
@@ -216,10 +216,10 @@ When presenting, emphasize these unique aspects:
    - Reformulates on empty results
    - 95%+ success rate with retry logic
 
-2. **Multi-Provider AI Support**
-   - Flexibility to choose best LLM for the task
-   - Free (Groq) to premium (Claude) options
-   - Easy provider switching
+2. **GraphRAG Architecture**
+   - Multi-strategy retrieval (Text2Cypher, Vector, VectorCypher)
+   - Intelligent heuristic-based query routing
+   - Automatic fallback between strategies
 
 3. **Production-Ready**
    - Comprehensive error handling
@@ -251,7 +251,7 @@ When presenting, emphasize these unique aspects:
 ### External Links
 - [Neo4j Documentation](https://neo4j.com/docs/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [LangChain Documentation](https://python.langchain.com/)
+- [neo4j-graphrag Documentation](https://github.com/neo4j/neo4j-graphrag-python)
 - [React Documentation](https://react.dev/)
 - [Mermaid Live Editor](https://mermaid.live/)
 
@@ -278,7 +278,7 @@ When presenting, emphasize these unique aspects:
 **System Name**: Investigraph
 **Purpose**: Natural Language to Cypher Query System for Crime Investigation
 **Target Users**: Law enforcement investigators
-**Tech Stack**: React + FastAPI + Neo4j + LangChain
+**Tech Stack**: React + FastAPI + Neo4j + neo4j-graphrag + Groq
 **Key Metric**: 95%+ query success rate in 1-3 seconds
 
 **Core Value Proposition**:
