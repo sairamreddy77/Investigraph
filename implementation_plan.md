@@ -423,139 +423,53 @@ examples:
 
 ---
 
-### 4.3 Cypher Generator — `core/cypher_generator.py`
+### 4.3 Retrievers — `core/retrievers.py`
 
-The core intelligence. One LLM call that receives **everything it needs**.
+This module implements the three core retrieval strategies using `neo4j-graphrag`.
 
-**System Prompt Template:**
+- **Text2CypherRetrieverWithRetry**: A custom wrapper around `Text2CypherRetriever` that provides self-healing logic for Cypher syntax errors and empty result handling.
+- **build_vector_retriever**: Configures a `VectorRetriever` targeting the `crime_vector_index` to perform semantic searches on crime properties.
+- **build_vector_cypher_retriever**: Configures a `VectorCypherRetriever` that combines semantic lookup with graph traversal to gather comprehensive investigative context.
 
-```
-You are an expert Neo4j Cypher query generator for a POLE (Person, Object, 
-Location, Event) crime investigation knowledge graph.
+### 4.4 GraphRAG Pipeline — `core/graphrag_pipeline.py`
 
-═══ GRAPH SCHEMA ═══
-{schema_text}          ← from schema_introspector
+The orchestrator that manages the flow from question to answer.
 
-═══ KNOWN PROPERTY VALUES ═══
-{property_values_text} ← categorical values from Neo4j
+1. **_classify_question**: Uses a heuristic keyword-based classifier to route the question to the appropriate retriever.
+2. **_execute_retriever**: Executes the selected retriever and captures the results, Cypher query (if applicable), and graph metadata.
+3. **Fallback Logic**: If the initial retriever returns no results, the system automatically triggers a fallback to the `VectorCypher` retriever to find semantic near-matches.
 
-═══ EXAMPLE QUERIES ═══
-{few_shot_text}        ← all 24 examples formatted as Q→Cypher pairs
+### 4.5 Prompts — `core/prompts.py`
 
-═══ RULES ═══
-1. Use ONLY the node labels, relationships, and properties from the schema above.
-2. Follow relationship directions EXACTLY as shown.
-3. For string filtering, ALWAYS use: toLower(n.prop) CONTAINS 'value'
-4. Use the EXACT property values from the "KNOWN PROPERTY VALUES" section.
-5. Return ONLY the Cypher query. No explanations, no markdown fences.
-6. Never generate MERGE, DELETE, SET, CREATE, DROP, or REMOVE statements.
-7. For "who" questions → target Person nodes.
-8. For count/most/least → use count(), ORDER BY, LIMIT.
-9. When unsure about exact values, use CONTAINS for partial matching.
-10. Always include meaningful RETURN aliases for readability.
+Centralized management of LLM prompts.
 
-{error_context}        ← empty on first attempt; error message on retry
-```
-
-**Function signature:**
-```python
-def generate_cypher(
-    question: str,
-    schema_context: str,
-    few_shot_examples: list[dict],
-    error_context: str = ""     # Populated on retry
-) -> str:
-```
+- **get_text2cypher_custom_prompt()**: Returns a schema-aware prompt for Cypher generation, including the 40 curated few-shot examples and error context for retries.
+- **get_rag_answer_template()**: A template for synthesizing the final natural language answer, ensuring it is grounded strictly in the retrieved context.
 
 ---
 
-### 4.4 Query Executor with Retry — `core/query_executor.py`
-
-```python
-MAX_RETRIES = 3
-
-def execute_with_retry(cypher, question, schema_ctx, examples):
-    for attempt in range(MAX_RETRIES):
-        try:
-            results = neo4j_graph.query(cypher)
-            if results:
-                return results, cypher
-            
-            # Empty results → ask LLM to reformulate
-            if attempt < MAX_RETRIES - 1:
-                error_ctx = (
-                    f"Previous query returned 0 results:\n{cypher}\n"
-                    f"Try relaxing filters or using a different traversal path."
-                )
-                cypher = generate_cypher(question, schema_ctx, examples, error_ctx)
-        
-        except Exception as e:
-            # Syntax/execution error → ask LLM to self-correct
-            if attempt < MAX_RETRIES - 1:
-                error_ctx = (
-                    f"Previous query failed with error:\n{str(e)}\n"
-                    f"Failed query:\n{cypher}\nPlease fix the query."
-                )
-                cypher = generate_cypher(question, schema_ctx, examples, error_ctx)
-            else:
-                return [], cypher
-    
-    return [], cypher
-```
-
----
-
-### 4.5 Answer Generator — `core/answer_generator.py`
-
-**System Prompt:**
-```
-You are a crime investigation analyst interpreting database query results.
-
-Question: {question}
-Query Used: {cypher}
-Results: {results}
-
-Rules:
-- Give a clear, direct answer to the question.
-- If results are empty, say so and suggest the user try a different query.
-- Format lists and tables when there are multiple results.
-- Do not mention Cypher or database internals unless the user asked about them.
-- Be concise — analysts need quick answers.
-```
-
----
-
-### 4.6 Pipeline Orchestrator — `core/pipeline.py`
+### 4.6 Pipeline Orchestrator — `core/graphrag_pipeline.py`
 
 ```python
 # Cached at startup
-_schema_context = None
-_few_shot_examples = None
+class GraphRAGPipeline:
+    def initialize(self):
+        # Build embedder, retrievers, GraphRAG instances
+        self._embedder = get_embedder()
+        self._text2cypher = build_text2cypher_retriever(...)
+        self._vector = build_vector_retriever(...)
+        self._vector_cypher = build_vector_cypher_retriever(...)
+        # GraphRAG instances for vector/vector_cypher
+        self._rag_instances = {"vector": GraphRAG(...), "vector_cypher": GraphRAG(...)}
 
-def init():
-    """Call once at app startup."""
-    global _schema_context, _few_shot_examples
-    _schema_context = introspect_schema()
-    _few_shot_examples = load_few_shot_examples("core/few_shot_examples.yaml")
-
-def run_query(question: str) -> dict:
-    # Step 1: Generate Cypher
-    cypher = generate_cypher(question, _schema_context, _few_shot_examples)
-    
-    # Step 2: Execute with retry
-    results, final_cypher = execute_with_retry(
-        cypher, question, _schema_context, _few_shot_examples
-    )
-    
-    # Step 3: Generate answer
-    answer = generate_answer(question, final_cypher, results)
-    
-    return {
-        "question": question,
-        "cypher": final_cypher,
-        "results": results,
-        "answer": answer
-    }
+    def run(self, question):
+        retriever_name = self._classify_question(question)
+        answer, cypher, results, graph_data, context = self._execute_retriever(retriever_name, question)
+        if not answer.strip():
+            fallback = self._get_fallback(retriever_name)
+            if fallback:
+                answer, cypher, results, graph_data, context = self._execute_retriever(fallback, question)
+        return {...}
 ```
 
 ---
@@ -570,59 +484,47 @@ NEO4J_USERNAME=xxxxx
 NEO4J_PASSWORD=xxxxx
 NEO4J_DATABASE=pole
 
-# LLM (pick one)
+# LLM
 GROQ_API_KEY=gsk_xxxxx              # For LLaMA 3.3 70B (free)
-# OPENAI_API_KEY=sk-xxxxx           # For GPT-4o
-# ANTHROPIC_API_KEY=sk-ant-xxxxx    # For Claude Sonnet
-# GOOGLE_API_KEY=AIzaSyxxxxx        # For Gemini 2.0 Flash
 ```
 
 ### [requirements.txt](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/requirements.txt)
 ```
 fastapi>=0.111.0
 uvicorn>=0.30.1
-langchain>=0.2.10
-langchain-neo4j>=0.0.12
-langchain-openai>=0.1.17
+neo4j-graphrag>=1.0.0
 neo4j>=5.23.1
 pydantic>=2.8.2
 python-dotenv>=1.0.1
 pyyaml>=6.0
+sentence-transformers>=3.0.0
+groq>=0.9.0
 ```
 
-### [app/llm.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/app/llm.py) — Multi-Provider Support
+### [app/llm.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/app/llm.py) — GroqLLM Wrapper
 ```python
-import os
-from langchain_openai import ChatOpenAI
+from neo4j_graphrag.llm import LLMInterface
+from groq import Groq
 
-def get_llm():
-    # Priority: Anthropic > OpenAI > Gemini > Groq
-    if os.getenv("ANTHROPIC_API_KEY"):
-        return ChatOpenAI(
-            model="claude-sonnet-4-20250514",
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
-            base_url="https://api.anthropic.com/v1",
+class GroqLLM(LLMInterface):
+    def __init__(self, model_name, api_key):
+        self.client = Groq(api_key=api_key)
+        self.model_name = model_name
+
+    def invoke(self, input_text):
+        response = self.client.chat.completions.create(
+            messages=[{"role": "user", "content": input_text}],
+            model=self.model_name,
             temperature=0
         )
-    if os.getenv("OPENAI_API_KEY"):
-        return ChatOpenAI(model="gpt-4o", temperature=0)
-    if os.getenv("GOOGLE_API_KEY"):
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
-    # Default: Groq
-    return ChatOpenAI(
-        model="llama-3.3-70b-versatile",
-        api_key=os.getenv("GROQ_API_KEY"),
-        base_url="https://api.groq.com/openai/v1",
-        temperature=0
-    )
+        return response.choices[0].message.content
 ```
 
 ---
 
 ## 6. API Design
 
-### `POST /ask`
+### `POST /api/query`
 
 **Request:**
 ```json
@@ -638,6 +540,13 @@ def get_llm():
     {"p.name": "John", "p.surname": "Smith", "c.type": "Drugs", "a.areaCode": "WN"},
     ...
   ],
+  "graph_data": {
+    "nodes": [...],
+    "relationships": [...]
+  },
+  "retriever_used": "text2cypher",
+  "retriever_context": "...",
+  "execution_time_ms": 1250,
   "attempts": 1
 }
 ```
@@ -650,13 +559,13 @@ Checks Neo4j connection and LLM availability.
 
 ---
 
-## 7. Frontend (FastAPI + HTML/JS)
+## 7. Frontend (React + TypeScript + Vite)
 
-A clean chat interface with:
-- **Chat area**: Question/answer history
-- **Cypher preview**: Expandable panel showing the generated query
-- **Results table**: Formatted tabular results
-- **Graph visualization**: Optional — using `neovis.js` or `vis.js` to render returned nodes/edges
+A modern investigative dashboard built with React and vis-network.
+
+- **ResponsePanel**: Primary display for the natural language answer, the generated Cypher query (expanded by default), and a dedicated Retriever Context section showing the grounded data used for generation.
+- **GraphVisualization**: An interactive canvas using `vis-network` to render the nodes and relationships returned by the pipeline, allowing investigators to explore the network visually.
+- **API Integration**: Connects to the `/api/query` endpoint with full support for streaming and metadata display.
 
 ---
 
@@ -664,7 +573,7 @@ A clean chat interface with:
 
 ### Automated Tests — `scripts/test_queries.py`
 
-Runs all 24 few-shot examples + 5 novel questions against the live pipeline:
+Runs all 40 few-shot examples + 5 novel questions against the live pipeline:
 
 ```python
 TEST_QUESTIONS = [
@@ -688,10 +597,10 @@ TEST_QUESTIONS = [
 | 4 | "Which officer investigated the most crimes?" | Aggregation with ORDER BY DESC LIMIT 1 |
 | 5 | "Find people who know someone involved in drug crimes" | Multi-hop: Person→KNOWS→Person→PARTY_TO→Crime |
 | 6 | "Find communication between phones" | Phone call pattern with CALLER + CALLED |
-| 7 | "Which area has the most crimes?" | 3-hop: Crime→Location→AREA + aggregation |
+| 7 | "Which area has the most crimes?" | 3-hop: Crime→Location→Area + aggregation |
 
 ### Success Criteria
-- ✅ All 24 few-shot questions return non-empty, correct results
+- ✅ All 40 few-shot questions return non-empty, correct results
 - ✅ At least 4/7 novel questions return correct results
 - ✅ Failed queries trigger retry and succeed on 2nd/3rd attempt
 - ✅ Average response time < 5 seconds
@@ -704,7 +613,7 @@ TEST_QUESTIONS = [
 |---|---|---|
 | **Phase 1** | [config.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/app/config.py), [database.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/app/database.py), [llm.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/app/llm.py) — foundation | 15 min |
 | **Phase 2** | `schema_introspector.py` — auto-fetch schema | 30 min |
-| **Phase 3** | `few_shot_examples.yaml` — write all 24 examples | Done ✅ |
+| **Phase 3** | `few_shot_examples.yaml` — write all 40 examples | Done ✅ |
 | **Phase 4** | [cypher_generator.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/agents/cypher_generator.py) — core LLM prompt | 30 min |
 | **Phase 5** | [query_executor.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/agents/query_executor.py) — execute + retry loop | 20 min |
 | **Phase 6** | [answer_generator.py](file:///c:/Users/SAIRAM%20REDDY/OneDrive/Desktop/Project2/code/agents/answer_generator.py) — NL answer synthesis | 15 min |
@@ -724,4 +633,4 @@ TEST_QUESTIONS = [
 | **LLaMA 3.3 70B (Groq)** | ⭐⭐⭐ | Free | ~0.5s | Budget option |
 
 > [!TIP]
-> With 24 few-shot examples, even LLaMA 3.3 will be significantly better than the current system. But for production reliability, Gemini Flash or GPT-4o are recommended.
+> With 40 few-shot examples, even LLaMA 3.3 will be significantly better than the current system. But for production reliability, Gemini Flash or GPT-4o are recommended.
