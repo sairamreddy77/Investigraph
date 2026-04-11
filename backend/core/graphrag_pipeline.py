@@ -269,7 +269,19 @@ class GraphRAGPipeline:
         if filter_score >= 2:
             return "text2cypher"
 
-        # ── 3. Semantic/exploratory patterns → VectorCypher ──
+        # ── 3. Person/entity-specific queries → Text2Cypher ──
+        # Queries about specific named people or entities with relationship verbs
+        # need precise Cypher traversal, not semantic similarity.
+        person_query_patterns = [
+            "involved in", "connected to", "associated with",
+            "crimes of", "crimes is", "crimes committed by",
+            "know each other", "family of", "family members",
+        ]
+        has_person_query = any(p in q for p in person_query_patterns)
+        if has_person_query:
+            return "text2cypher"
+
+        # ── 4. Semantic/exploratory patterns → VectorCypher ──
         semantic_patterns = [
             "tell me about", "describe", "explain", "summarize",
             "what do you know", "overview", "insight",
@@ -280,15 +292,15 @@ class GraphRAGPipeline:
             if pattern in q:
                 return "vector_cypher"
 
-        # ── 4. Questions starting with who/what/where/when → Text2Cypher ──
-        if q.startswith(("who ", "where ", "when ")):
+        # ── 5. Questions starting with who/what/where/when → Text2Cypher ──
+        if q.startswith(("who ", "what ", "where ", "when ")):
             return "text2cypher"
 
-        # ── 5. Short queries or keyword-like → vector search ──
+        # ── 6. Short queries or keyword-like → vector search ──
         if len(q.split()) <= 4:
             return "vector"
 
-        # ── 6. Default to vector_cypher for best context ──
+        # ── 7. Default to vector_cypher for best context ──
         return "vector_cypher"
 
     def _execute_retriever(

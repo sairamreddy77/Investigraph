@@ -7,8 +7,9 @@ interface ResponsePanelProps {
 }
 
 const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
-  const [showCypher, setShowCypher] = useState(false);
+  const [showCypher, setShowCypher] = useState(true);
   const [showRawResults, setShowRawResults] = useState(false);
+  const [showContext, setShowContext] = useState(false);
 
   if (!response) {
     return null;
@@ -76,6 +77,29 @@ const ResponsePanel: React.FC<ResponsePanelProps> = ({ response }) => {
               >
                 Copy
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Retriever Context (Collapsible) - shows what context was fed to the LLM */}
+      {response.retriever_context && response.retriever_context.length > 0 && (
+        <div className="cypher-section">
+          <div
+            className="section-header"
+            onClick={() => setShowContext(!showContext)}
+          >
+            <h3>Retriever Context ({response.retriever_context.length} items)</h3>
+            <span className="toggle-icon">{showContext ? '▼' : '▶'}</span>
+          </div>
+
+          {showContext && (
+            <div className="cypher-content">
+              {response.retriever_context.map((ctx, i) => (
+                <pre key={i} style={{ marginBottom: '8px', whiteSpace: 'pre-wrap' }}>
+                  {ctx}
+                </pre>
+              ))}
             </div>
           )}
         </div>
