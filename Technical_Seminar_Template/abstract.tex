@@ -1,0 +1,10 @@
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{ABSTRACT}
+\chapter*{ABSTRACT}
+\noindent
+\fontsize{12pt}{24pt} \selectfont 
+The rapid evolution of large language models (LLMs) has introduced a fundamental bottleneck: the inability to process and reason over arbitrarily long contexts. Standard attention mechanisms suffer from probability mass dilution and context rot as input lengths scale to millions of tokens, while retrieval-augmented generation (RAG) systems sacrifice global context through sparse, heuristic-based retrieval. This work presents the Recursive Language Model (RLM) paradigm, a structural framework that redefines long-context reasoning by shifting from passive token ingestion to active programmatic navigation. Unlike conventional scaffolds that flood the context window, RLMs externalize the entire prompt into a persistent Read-Eval-Print Loop (REPL) environment, treating documents as interactive digital worlds to be explored with code. Through symbolic recursion, the root model orchestrates programmatic sub-calls for dense semantic reasoning, maintaining a clean context window while enabling systematic traversal of multi-million-token corpora. Empirical evaluation across rigorous benchmarks BrowseComp-Plus (6M–11M tokens), OOLONG-Pairs ($O(N^2)$ relational reasoning), and LongBench-v2 CodeQA demonstrates that RLMs achieve up to 91.3\% accuracy, significantly outperforming RAG-based and summary-based baselines. The framework transforms memory bottlenecks into inference-time scaling, with median API costs comparable to standard model calls. This work establishes that the fundamental limitation of LLMs is not context window size but the software scaffold surrounding them, positioning RLMs as a foundational paradigm for high-stakes domains requiring deep, reliable reasoning over massive datasets.\\
+\indent
+\textit{Keywords} : Recursive Language Models, Long-context reasoning, Programmatic navigation, Inference-time scaling, REPL environment, Symbolic recursion, Large Language Models
+\\

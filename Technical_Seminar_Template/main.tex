@@ -1,0 +1,214 @@
+\documentclass[a4paper,12pt,oneside]{book}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage{times}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{tocloft}
+\usepackage{tabu}
+\usepackage{fancyhdr}
+\usepackage{float}
+\usepackage{booktabs}
+\geometry{a4paper, tmargin=1in, rmargin=1in, bmargin=1in, lmargin=1.5in}
+\usepackage{tabularx}
+\usepackage{array} % Required for >{} syntax
+%-----------------------------------------
+% Editables of the document
+%-----------------------------------------
+\newcommand{\thesistitle}{Recursive Language Models: A paradigm shift in scaling inference, challenging traditional RAG
+}
+\newcommand{\thesisauthor}{Valleboina Shiva Prasad}
+\newcommand{\thesisroll}{1601-22-771-063}
+\newcommand{\thesisdept}{Artificial Intelligence and Data Science}
+\newcommand{\depthod}{Dr. K. Radhika}
+\newcommand{\thesisguidea}{Dr. T. Satya Kiranmai}
+\newcommand{\thesisguideb}{Dr. S. Shobarani}
+%-----------------------------------------
+
+% References – you must create reference.bib with the entries below
+\usepackage[backend=bibtex, style=numeric, bibencoding=ascii, maxbibnames=99, sorting=none]{biblatex}
+\addbibresource{reference.bib}
+
+% For Figures
+\usepackage{graphicx, caption, subcaption}
+\usepackage{float}
+\usepackage{tocloft}
+
+
+% 2. Remove dots for Chapters and Frontmatter
+\renewcommand{\cftchapleader}{\hfill} 
+\renewcommand{\cftchappagefont}{\normalfont}
+\renewcommand{\cftchapfont}{\bfseries}
+
+% 3. Keep dots for Sections (1.1, 1.2, etc.)
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+
+% 4. Fix "CHAPTER - 1 : TITLE" spacing
+\renewcommand{\cftchappresnum}{CHAPTER - }
+\renewcommand{\cftchapaftersnum}{ :} 
+\newlength{\chaplabelwidth}
+\settowidth{\chaplabelwidth}{\bfseries CHAPTER - 1 : }
+\setlength{\cftchapnumwidth}{\chaplabelwidth} 
+\setlength{\cftchapindent}{0pt}
+
+% 5. Tighten spacing between entries to match image
+\setlength{\cftbeforechapskip}{10pt}
+\setlength{\cftbeforesecskip}{2pt}
+
+% 4. ToC Title styling
+\renewcommand{\contentsname}{TABLE OF CONTENTS} 
+\renewcommand{\cfttoctitlefont}{\hfill\Large\bfseries}
+\renewcommand{\cftaftertoctitle}{\hfill\\[2em]\textbf{Contents}\hfill\textbf{Page No.}\\[-5em]}
+
+
+% Chapter Title Customization (from template)
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+{\Large\bfseries\centering}{\MakeUppercase\chaptertitlename\ \thechapter}{5pt}{\Large}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+
+% Section Customization
+\titleformat{\section}{\large \bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\fontsize{13pt}{13pt} \bfseries}{\thesubsection}{1em}{}
+
+% ToC and LoF titles (centered)
+\renewcommand*\contentsname{\Large \centerline{TABLE OF CONTENTS}}
+\renewcommand*\listfigurename{\Large \centerline{LIST OF FIGURES}}
+\renewcommand*\listtablename{\Large \centerline{LIST OF TABLES}}
+\renewcommand*{\bibfont}{\small}
+
+% Page style
+\pagestyle{fancy}
+\cfoot{\thepage}
+\rhead{}
+\lhead{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\usepackage{xcolor} % Required in the preamble
+\definecolor{deptGreen}{HTML}{006400}
+
+% Line spacing
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{textcase}
+\usepackage[bookmarks, colorlinks=false, pdfborder={0 0 0}, pdftitle={\thesistitle}, pdfkeywords={}]{hyperref}
+
+\begin{document}
+
+% Word spacing
+\spaceskip=1.5\fontdimen2\font plus 1.5\fontdimen3\font minus 1.5\fontdimen4\font
+
+
+
+%-----------------------------------------------------------------
+% Title Page (exactly as requested)
+%-----------------------------------------------------------------
+\begin{titlepage}
+\begin{center}
+\fontsize{14pt}{21pt}\selectfont A Technical Report on\\
+\vspace{0.2cm}
+\fontsize{20pt}{1cm}\selectfont \textbf{\thesistitle}\\
+\vspace{0.2cm}
+\fontsize{14pt}{21pt}\selectfont submitted in partial fulfillment of the requirements \\
+for the award of the degree of\\
+
+
+\vspace*{0.8cm}
+\fontsize{14pt}{1cm}\selectfont\textbf{Bachelor of Engineering}\\
+in\\
+\textbf{\thesisdept}
+
+\vspace*{0.2cm}
+By
+
+\textbf{\thesisauthor} (\textbf{\thesisroll})\\[0.2cm]
+\fontsize{14pt}{24pt}\selectfont Under the supervision of\\
+\textbf{\depthod}\\
+\fontsize{12pt}{21pt}\selectfont\textbf{Professor}\\
+
+\vspace*{0.8cm}
+
+\includegraphics[width=1.5in]{cbit.png}
+
+\vspace*{0.5cm}
+\fontsize{12pt}{12pt}\selectfont \textbf{DEPARTMENT OF \MakeUppercase{\thesisdept}}\\[0.2cm]
+\fontsize{14pt}{14pt}\selectfont\textbf{CHAITANYA BHARATHI INSTITUTE OF TECHNOLOGY}\\[0.2cm]
+\fontsize{12pt}{14pt} (AUTONOMOUS)\\[0.2cm]
+\fontsize{10pt}{10pt}\selectfont (An Autonomous Institution, Affiliated to Osmania University, Approved by AICTE, Accredited by\\
+NAAC with A++ Grade and Programs Accredited by NBA)\\[0.2cm]
+Chaitanya Bharathi Post, Gandipet, Kokapet(Vill), Hyderabad, Ranga Reddy - 500075, Telangana\\[0.2cm]
+www.cbit.ac.in\\[0.2cm]
+\textbf{APRIL 2026}
+\vspace*{0.2cm}
+\end{center}
+\end{titlepage}
+
+
+\frontmatter
+\pagenumbering{roman}
+%-----------------------------------------------------------------
+% Department Certificate (from separate file)
+%-----------------------------------------------------------------
+\addcontentsline{toc}{chapter}{DEPARTMENT CERTIFICATE}
+\input{Declaration}
+
+%-----------------------------------------------------------------
+% Acknowledgement (from separate file)
+%-----------------------------------------------------------------
+\input{acknowledgements}
+
+%-----------------------------------------------------------------
+% Abstract (from separate file)
+%-----------------------------------------------------------------
+\input{abstract}
+
+
+%-----------------------------------------------------------------
+% List of tables (new page)
+%-----------------------------------------------------------------
+\clearpage
+\phantomsection
+\doublespacing
+\addcontentsline{toc}{chapter}{LIST OF TABLES}
+\listoftables
+
+%-----------------------------------------------------------------
+% List of Figures (new page)
+%-----------------------------------------------------------------
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{LIST OF FIGURES}
+\listoffigures
+
+
+%-----------------------------------------------------------------
+% Table of Contents (new page)
+%-----------------------------------------------------------------
+\clearpage
+\onehalfspacing
+\phantomsection
+\addcontentsline{toc}{chapter}{TABLE OF CONTENTS}
+\tableofcontents
+
+
+%-----------------------------------------------------------------
+% Main Content (chapters start on new page automatically)
+%-----------------------------------------------------------------
+\mainmatter
+\onehalfspacing
+
+\input{chapters.tex}
+%-----------------------------------------------------------------
+% References (new page)
+%-----------------------------------------------------------------
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{REFERENCES}
+\renewcommand\bibname{REFERENCES}
+\printbibliography
+
+\end{document}

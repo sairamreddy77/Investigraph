@@ -420,3 +420,24 @@ LIMIT 50
 
 
 Mainly if you also showcase the query it would be helpful to verify and be more transparent.
+
+
+
+
+
+The query is still not visible!!!
+
+also one more query I asked - 
+
+
+
+topics used - 
+before mcp the revolution
+M*n integration caos
+what is mcp
+how mcp solves
+architecture
+host
+client
+server
+example mcp build
