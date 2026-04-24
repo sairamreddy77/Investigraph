@@ -1,0 +1,10 @@
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{ABSTRACT}
+\chapter*{ABSTRACT}
+\noindent
+\fontsize{12pt}{24pt} \selectfont
+The rapid proliferation of Large Language Models (LLMs) has created a fragmented ecosystem where every AI assistant requires custom, one-off integrations to connect with external tools, databases, and services. This M×N integration problem — where M models must each build N separate connectors — results in duplicated engineering effort, brittle pipelines, and a severe limitation on what AI systems can actually accomplish in the real world. This report presents the \textbf{Model Context Protocol (MCP)}, an open standard introduced by Anthropic in November 2024 that resolves this chaos by providing a universal, vendor-neutral communication layer between AI hosts and external capability providers. Drawing an analogy to the USB standard in hardware, MCP defines a structured client-server architecture in which a Host application manages one or more lightweight Clients, each maintaining a persistent connection to a dedicated MCP Server that exposes tools, resources, and prompts. This report traces the evolution of AI tool integration from brittle ad-hoc APIs to the structured MCP paradigm, examines the three-layer architecture in depth, and demonstrates the protocol through a fully worked example of building a custom MCP server. The analysis establishes that MCP is not merely a convenience layer but a foundational infrastructure shift that transforms AI assistants from isolated chat interfaces into composable, context-aware agents capable of acting meaningfully in complex digital environments.\\
+\indent
+\textit{Keywords}: Model Context Protocol, MCP, AI Tool Integration, LLM Agents, Host-Client-Server Architecture, Anthropic, AI Standardization, Tool Use, Context Window
+\\
