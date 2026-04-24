@@ -236,7 +236,7 @@ id: string              # Postcode identifier
 postcode: string       # Postcode (e.g., "BL1", "WN2")
 ```
 
-#### 11. AREA
+#### 11. Area
 **Purpose**: Geographic investigation areas
 
 **Properties**:
@@ -330,15 +330,15 @@ name: string           # Area name (BL1, WN, OL, M)
 **Meaning**: Location's postal code
 
 #### LOCATION_IN_AREA
-**Direction**: Location → AREA
+**Direction**: Location → Area
 **Meaning**: Location falls within this investigation area
 
 #### POSTCODE_IN_AREA
-**Direction**: PostCode → AREA
+**Direction**: PostCode → Area
 **Meaning**: Postcode belongs to this area
 
 #### OFFICER_IN_AREA
-**Direction**: Officer → AREA
+**Direction**: Officer → Area
 **Meaning**: Officer's jurisdiction/assigned area
 
 ---
@@ -359,7 +359,7 @@ name: string           # Area name (BL1, WN, OL, M)
 | **PhoneCall** | 1000-3000 | Call records |
 | **Email** | 200-400 | Email addresses |
 | **PostCode** | 50-100 | Postal codes |
-| **AREA** | 4-10 | Investigation areas |
+| **Area** | 4-10 | Investigation areas |
 
 ### Relationship Density
 
@@ -411,7 +411,7 @@ RETURN p.name + ' ' + p.surname AS person, c.type, c.date
 
 **Find crimes in specific area**:
 ```cypher
-MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:AREA)
+MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:Area)
 WHERE a.name = 'BL1'
 RETURN c.type, l.street, c.date
 ```
@@ -429,7 +429,7 @@ RETURN p1.name + ' ' + p1.surname AS person1,
 
 **Crime count by area**:
 ```cypher
-MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:AREA)
+MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:Area)
 RETURN a.name AS area, count(c) AS crime_count
 ORDER BY crime_count DESC
 ```
@@ -470,7 +470,7 @@ ORDER BY call_count DESC
 
 ## Training Data: Few-Shot Examples
 
-The system uses **24 curated examples** to teach the LLM how to generate Cypher queries:
+The system uses **40 curated examples** to teach the LLM how to generate Cypher queries:
 
 ### Example Categories
 
@@ -502,7 +502,7 @@ The system uses **24 curated examples** to teach the LLM how to generate Cypher 
 ```yaml
 - Question: "Find people involved in drug crimes in area WN"
   Cypher: MATCH (p:Person)-[:PARTY_TO]->(c:Crime)-[:OCCURRED_AT]->
-          (l:Location)-[:LOCATION_IN_AREA]->(a:AREA)
+          (l:Location)-[:LOCATION_IN_AREA]->(a:Area)
           WHERE toLower(c.type) CONTAINS 'drug' AND a.name = 'WN'
           RETURN p.name, p.surname, c.type, l.street
 ```
@@ -510,7 +510,7 @@ The system uses **24 curated examples** to teach the LLM how to generate Cypher 
 #### 4. Aggregation Queries (5 examples)
 ```yaml
 - Question: "Which area has the highest number of crimes?"
-  Cypher: MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:AREA)
+  Cypher: MATCH (c:Crime)-[:OCCURRED_AT]->(l:Location)-[:LOCATION_IN_AREA]->(a:Area)
           RETURN a.name, count(c) AS crime_count
           ORDER BY crime_count DESC
           LIMIT 1
@@ -649,7 +649,7 @@ The POLE dataset provides a **realistic, structured foundation** for criminal in
 
 - ✅ **11 entity types** covering all investigation aspects
 - ✅ **17 relationship types** enabling complex queries
-- ✅ **24 training examples** for AI query generation
+- ✅ **40 training examples** for AI query generation
 - ✅ **3 case study workflows** for guided investigations
 - ✅ **Production-ready schema** with indexes and constraints
 - ✅ **Flexible and extensible** for various investigation types

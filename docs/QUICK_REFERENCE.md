@@ -50,7 +50,7 @@
 ```
 Step 1: Generate Cypher
 ├─ Load schema context
-├─ Load 24 training examples
+├─ Load 40 training examples
 └─ AI generates Cypher query
 
 Step 2: Execute with Retry
@@ -85,7 +85,7 @@ Step 3: Generate Answer
 
 **Backend:**
 - FastAPI (Python web framework)
-- LangChain (LLM orchestration)
+- Groq Client LLM Wrapper (Python SDK for LLM orchestration)
 - Neo4j Driver
 - Pydantic (validation)
 
@@ -130,7 +130,7 @@ Step 3: Generate Answer
 A: Graphs excel at relationship queries. "Friends of suspects" requires complex joins in SQL but is a simple 2-hop in Neo4j.
 
 **Q: How accurate is Cypher generation?**
-A: 85-95% first attempt. With retry: 95%+. Trained on 24 examples covering all query patterns.
+A: 85-95% first attempt. With retry: 95%+. Trained on 40 examples covering all query patterns.
 
 **Q: What if it generates wrong query?**
 A: Self-healing detects errors and auto-corrects. Syntax errors → feed error back to AI. Empty results → relax filters.

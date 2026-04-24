@@ -53,9 +53,9 @@ Investigraph bridges this gap by:
 
 **Highlight Unique Features**:
 - ✅ Self-healing queries (automatically corrects errors)
-- ✅ Multi-provider LLM support (choose best AI for your needs)
+- ✅ Multi-strategy retrieval (Text2Cypher, Vector, VectorCypher)
 - ✅ Real-time graph visualization
-- ✅ 24 curated training examples
+- ✅ 40 curated training examples
 
 ---
 
@@ -149,7 +149,7 @@ Result: 15 people found with graph visualization
 ```
 
 **Training Data**:
-- 24 curated examples covering:
+- 40 curated examples covering:
   - Basic queries (counts, filtering)
   - Relationship traversals
   - Multi-hop queries (2-3 relationships)
@@ -170,22 +170,20 @@ vis-network           → Graph visualization
 **Backend**:
 ```
 FastAPI               → High-performance Python web framework
-LangChain             → Multi-provider LLM orchestration
+neo4j-graphrag        → GraphRAG orchestration library
 Neo4j Driver          → Graph database connectivity
 Pydantic              → Data validation
 ```
 
-**AI Providers**:
+**AI**:
 ```
-Groq (LLaMA 3.3)      → Fastest (< 500ms), free tier
-OpenAI (GPT-4o)       → Best accuracy
-Anthropic (Claude)    → Highest quality reasoning
-Google (Gemini)       → Best value
+Groq (LLaMA 3.3-70b) → High-speed inference, free tier
+SentenceTransformers  → Local embeddings (all-MiniLM-L6-v2)
 ```
 
 **Why These Technologies?**
 - ✅ **FastAPI**: Async support, auto-generated docs, fast performance
-- ✅ **LangChain**: Provider flexibility, easy to switch AI models
+- ✅ **neo4j-graphrag**: Native GraphRAG orchestration with multi-strategy retrieval
 - ✅ **Neo4j**: Optimized for relationship queries
 - ✅ **React + TypeScript**: Type safety catches bugs at compile time
 
@@ -303,7 +301,7 @@ Accuracy:
 - **Languages**: Python (backend), TypeScript/JavaScript (frontend)
 - **Framework**: FastAPI + React
 - **Database**: Neo4j with POLE schema
-- **AI Integration**: LangChain with 4 providers
+- **AI Integration**: neo4j-graphrag with Groq Llama-3.3-70b
 - **Testing**: pytest, 55+ manual scenarios
 - **Deployment**: Docker, cloud-ready
 
@@ -328,7 +326,7 @@ Accuracy:
 > A: Graph databases like Neo4j are optimized for relationship queries. Finding "friends of friends of suspects" in SQL requires complex joins, but in Neo4j it's a simple 2-hop traversal. Investigations are fundamentally about relationships, making graphs the ideal model.
 
 **Q: How accurate is the Cypher generation?**
-> A: 85-95% first-attempt success rate. With our self-healing retry logic, we achieve 95%+ overall success. The system learns from 24 curated examples covering all common query patterns.
+> A: 85-95% first-attempt success rate. With our self-healing retry logic, we achieve 95%+ overall success. The system learns from 40 curated examples covering all common query patterns.
 
 **Q: Can it handle complex multi-hop queries?**
 > A: Yes. We've tested up to 4-hop queries (e.g., "Find family members of people who know suspects in drug crimes in area WN"). The system successfully handles multi-relationship traversals with filtering.
